@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>U-culling | VRChat発ロックバンド</title>
+  <meta name="description" content="VRChat発ロックバンド U-culling 公式サイト。NEWS / LIVE / DISCOGRAPHY / VIDEO / PROFILE を掲載。">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="U-culling | VRChat発ロックバンド">
+  <meta property="og:description" content="VRChat発ロックバンド U-culling 公式サイト。NEWS / LIVE / DISCOGRAPHY / VIDEO / PROFILE。">
+  <meta property="og:image" content="assets/hero.jpg">
+  <meta property="og:site_name" content="U-culling">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="assets/logo.jpg" type="image/jpeg">
+  <link rel="preload" as="image" href="assets/hero.jpg">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="theme--scarlet">
+<header class="site-header">
+  <a class="brand" href="#top" aria-label="U-culling Home">
+    <img src="assets/logo.jpg" alt="U-culling" width="132" height="32">
+  </a>
+
+  <button class="menu-toggle" aria-controls="global-nav" aria-expanded="false" aria-label="メニューを開く">
+    <span class="menu-toggle__bar"></span>
+    <span class="menu-toggle__bar"></span>
+    <span class="menu-toggle__bar"></span>
+  </button>
+
+  <nav id="global-nav" class="nav" aria-label="メイン">
+    <a href="#news">NEWS</a>
+    <a href="#live">LIVE</a>
+    <a href="#disc">DISCOGRAPHY</a>
+    <a href="#video">VIDEO</a>
+    <a href="#profile">PROFILE</a>
+    <a class="nav--accent" href="#" aria-disabled="true">FANCLUB</a>
+    <a class="nav--accent" href="#" aria-disabled="true">STORE</a>
+  </nav>
+  <div class="nav-backdrop" hidden></div>
+</header>
+
+<main id="top">
+  <section class="hero" aria-label="キービジュアル">
+    <div class="hero__bg" role="img" aria-label="ライブキービジュアル"></div>
+    <div class="hero__inner">
+      <div class="hero__brand">
+        <img class="hero-logo" src="assets/logo.jpg" alt="U-culling logo" width="72" height="72">
+        <h1>U-culling</h1>
+      </div>
+      <p class="lead">VRChat発ロックバンド。仮想と現実を横断するステージ。</p>
+      <div class="cta">
+        <a class="btn" href="#live">次の公演</a>
+        <a class="btn btn--ghost" href="#video">映像を見る</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="news" class="section">
+    <div class="container">
+      <h2>NEWS</h2>
+      <ul id="news-list" class="news-list"></ul>
+      <p class="more-note">※最新3件を表示。詳細は各SNS/アーカイブへ。</p>
+    </div>
+  </section>
+
+  <section id="live" class="section section--alt">
+    <div class="container">
+      <h2>LIVE</h2>
+      <div class="shows">
+        <div>
+          <h3>Upcoming</h3>
+          <ul id="shows-upcoming" class="list"></ul>
+        </div>
+        <div>
+          <h3>Past</h3>
+          <ul id="shows-past" class="list"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="disc" class="section">
+    <div class="container">
+      <h2>DISCOGRAPHY</h2>
+      <div class="disc-filter">
+        <button data-type="ALL" class="is-active">ALL</button>
+        <button data-type="SINGLE">SINGLE</button>
+        <button data-type="EP">EP</button>
+        <button data-type="ALBUM">ALBUM</button>
+        <button data-type="LIVE">LIVE</button>
+      </div>
+      <div id="songs-list" class="grid"></div>
+    </div>
+  </section>
+
+  <section id="video" class="section section--alt">
+    <div class="container">
+      <h2>VIDEO</h2>
+      <div id="media-youtube" class="media-yt-grid"></div>
+    </div>
+  </section>
+
+  <section id="profile" class="section">
+    <div class="container">
+      <h2>PROFILE</h2>
+      <p class="about">
+        U-cullingはVRChatライブハウス文化から生まれたロックバンド。<br>
+        重心の低いリフ、二本ギターの対旋律、密度の違うセクションのダイナミクスが特徴。<br>
+        Born in VRChat live-house culture. Heavy riffs, dual-guitar counter-melodies, and dynamic contrasts.
+      </p>
+      <div id="members-list" class="grid"></div>
+    </div>
+  </section>
+
+  <section id="contact" class="section section--alt">
+    <div class="container">
+      <h2>CONTACT</h2>
+      <p>出演依頼・取材はメールまたはXのDMへ。</p>
+      <p><a class="btn" href="mailto:contact@u-culling.example">contact@u-culling.example</a></p>
+      <div class="social">
+        <svg class="icon"><use href="assets/icons.svg#x" /></svg>
+        <a href="https://x.com/your_official" target="_blank" rel="noopener">X（公式）</a>
+        <svg class="icon"><use href="assets/icons.svg#youtube" /></svg>
+        <a href="https://www.youtube.com/@your_channel" target="_blank" rel="noopener">YouTube</a>
+        <svg class="icon"><use href="assets/icons.svg#vrchat" /></svg>
+        <a href="https://hello.vrchat.com/" target="_blank" rel="noopener">VRChat</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="social" class="section">
+    <div class="container">
+      <h2>SOCIAL / FEED</h2>
+      <div class="feed-grid">
+        <div class="feed-col">
+          <h3>Official X Timeline</h3>
+          <p class="more-note">公式ウィジェット。キー不要／即表示。</p>
+          <div id="xtl" class="xtl-skeleton" data-screen="UcullingHQ" data-theme="dark" data-limit="5"></div>
+        </div>
+        <div class="feed-col">
+          <h3>Live Feed (API)</h3>
+          <p class="more-note">サーバーレスAPI経由でほぼリアルタイム取得（60秒間隔）。</p>
+          <div id="x-feed" class="x-feed"></div>
+          <pre class="more-note small">※ FEED_ENDPOINT を設定すると自動で表示されます。</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>&copy; <span id="y"></span> U-culling. All rights reserved.</p>
+</footer>
+
+<script type="module" src="js/util.js"></script>
+<script type="module" src="js/main.js"></script>
+<script type="module" src="js/nav.js"></script>
+<script>
+  /* ===== フィード切替設定 =====
+     開発中（Live Server）は 429 を避けるため USE_WIDGET:false を推奨。
+     本番で公式タイムラインを使うなら true に。
+     FEED_ENDPOINT は Cloudflare/Vercel などにデプロイしたAPIのURLを設定。 */
+  window.UC_FEED = {
+    USE_WIDGET: false,                         // ← dev: false / prod: true
+    FEED_ENDPOINT: 'data/x-feed-dev.json' // ← あなたのエンドポイントに変更
+  };
+</script>
+<script type="module" src="js/feed-router.js"></script>
+
+
+<script>
+  // === Production config ===
+  window.UC_FEED = {
+    USE_WIDGET: true,        // 本番：公式ウィジェットを有効化
+    ENABLE_API_FEED: false,  // 本番既定：APIフィードは無効（必要なら true にして FEED_ENDPOINT 設定）
+    FEED_ENDPOINT: ''        // 例: '/api/x-feed?user=UcullingHQ'（Cloudflare/Vercelにデプロイ後）
+  };
+</script>
+<script type="module" src="js/feed-router.js"></script>
+
+</body>
+</html>

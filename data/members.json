@@ -1,0 +1,45 @@
+[
+  {
+    "name": "ししゃもん",
+    "role": "Vocal",
+    "image": "assets/member_vocal.jpg",
+    "social": {
+      "X": "https://x.com/sh1sh4mo33",
+      "VRChat": ""
+    }
+  },
+  {
+    "name": "cannot722",
+    "role": "Lead Guitar",
+    "image": "assets/member_guitarA.jpg",
+    "social": {
+      "X": "https://x.com/cannot722"
+    }
+  },
+  {
+    "name": "DOYSOUND",
+    "role": "Backing Guitar",
+    "image": "assets/member_guitarB.png",
+    "social": {
+      "X": "https://x.com/sh1sh4mo33",
+      "VRChat": "https://vrchat.com/home/user/usr_5d3289b7-5064-406b-8b66-7a7be2f0e292",
+      "Github": "https://doysound-cmd.github.io/Portfolio/"
+    }
+  },
+  {
+    "name": "plateck0118",
+    "role": "Bass",
+    "image": "assets/member_bass.jpg",
+    "social": {
+      "X": "https://x.com/plateck0118"
+    }
+  },
+  {
+    "name": "なまやき",
+    "role": "Drums",
+    "image": "assets/member_drums.jpg",
+    "social": {
+      "X": "https://x.com/namayakiVRC"
+    }
+  }
+]

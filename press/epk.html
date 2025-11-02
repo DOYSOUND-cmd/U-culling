@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>U-culling | EPK</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>.epk{max-width:900px;margin:40px auto;padding:0 20px}.epk .grid2{display:grid;gap:16px;grid-template-columns:1fr}@media(min-width:880px){.epk .grid2{grid-template-columns:1fr 1fr}}</style>
+</head>
+<body class="theme--scarlet">
+  <div class="epk">
+    <h1>U-culling — Electronic Press Kit</h1>
+    <p class="more-note">連絡先: <a href="mailto:press@u-culling.example">press@u-culling.example</a></p>
+    <div class="grid2">
+      <div>
+        <h2>バイオグラフィ</h2>
+        <p>VRChat発のロックバンド。重心の低いリフと広いダイナミクスを武器に、仮想/現実の両フィールドで活動。</p>
+      </div>
+      <div>
+        <h2>メンバー</h2>
+        <ul id="epk-members"></ul>
+        <h3>リンク</h3>
+        <ul>
+          <li><a href="../index.html">公式サイト</a></li>
+          <li><a href="https://x.com/your_official" target="_blank" rel="noopener">X（公式）</a></li>
+          <li><a href="https://www.youtube.com/@your_channel" target="_blank" rel="noopener">YouTube</a></li>
+        </ul>
+        <div class="dl">
+          <a class="btn" href="../assets/logo.jpg" download>ロゴ（JPG）</a>
+          <a class="btn btn--ghost" href="../assets/hero.jpg" download>写真（JPG）</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="module">
+    fetch("../data/members.json").then(r=>r.json()).then(ms=>{
+      const ul = document.getElementById("epk-members");
+      ul.innerHTML = ms.map(m=>`<li><strong>${m.name}</strong> — ${m.role}</li>`).join("");
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+[
+  {
+    "title": "Mesh Diver",
+    "type": "SINGLE",
+    "year": 2025,
+    "genres": [
+      "Alternative",
+      "Emo"
+    ],
+    "tags": [
+      "Original",
+      "Live Take",
+      "Drop D"
+    ],
+    "desc": "密度の発散/収束をセクションで表現。二本ギターの対旋律が主題。",
+    "audio": "",
+    "videoId": "",
+    "cover": "assets/live_03.jpg"
+  },
+  {
+    "title": "NullPointer (Session)",
+    "type": "LIVE",
+    "year": 2025,
+    "genres": [
+      "Post-Hardcore"
+    ],
+    "tags": [
+      "Session",
+      "VRChat Live"
+    ],
+    "desc": "Sync系遅延補償を前提にアレンジした高速ナンバー。",
+    "videoId": "",
+    "cover": "assets/live_04.jpg"
+  }
+]
