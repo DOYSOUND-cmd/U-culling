@@ -1,5 +1,7 @@
 // js/feed-router.js
 const cfg = window.UC_FEED || {};
+/*__fallback_patch__*/
+
 const onVisible = (el, cb) => {
   const io = new IntersectionObserver(es => {
     if (es.some(e => e.isIntersecting)) { io.disconnect(); cb(); }
@@ -41,11 +43,15 @@ async function mountWidget() {
     const theme  = el.getAttribute('data-theme')  || 'dark';
     const limit  = parseInt(el.getAttribute('data-limit') || '5', 10);
     await widgets.createTimeline(
-      { sourceType: 'profile', screenName: screen },
-      el,
-      { theme, chrome: 'noheader nofooter noborders transparent', tweetLimit: limit, dnt: true }
-    );
-    el.classList.remove('xtl-skeleton');
+  { sourceType: 'profile', screenName: screen },
+  el,
+  { theme, chrome: 'noheader nofooter noborders transparent', tweetLimit: limit, dnt: true }
+);
+el.classList.remove('xtl-skeleton');
+// fallback: if API is enabled, also mount API after a small delay to ensure content even when widget rate-limits later
+if (cfg.ENABLE_API_FEED && (cfg.FEED_ENDPOINT||'').trim()) {
+  setTimeout(()=>{ const t=document.getElementById('x-feed'); if(t && !t.hasChildNodes()) mountApi(); }, 1500);
+}
   } catch (e) {
     el.classList.remove('xtl-skeleton');
     el.innerHTML = `
@@ -57,12 +63,17 @@ async function mountWidget() {
         </div>
       </article>`;
     console.warn('X widget failed:', e);
+if (cfg.ENABLE_API_FEED && (cfg.FEED_ENDPOINT||'').trim()) { const t=document.getElementById('x-feed'); if(t) mountApi(); }
   }
 }
 
 // Lazy mount
 const apiMountTarget = document.getElementById('x-feed');
-if (apiMountTarget && cfg.ENABLE_API_FEED && (cfg.FEED_ENDPOINT||'').trim()) onVisible(apiMountTarget, mountApi);
+if (apiMountTarget && cfg.ENABLE_API_FEED && (cfg.FEED_ENDPOINT||'').trim()) {
+  onVisible(apiMountTarget, mountApi);
+} else if (apiMountTarget && !cfg.ENABLE_API_FEED) {
+  apiMountTarget.innerHTML = '<div class="tweet"><p class="more-note small">APIフィードは無効化中。UC_FEED.ENABLE_API_FEED=true で有効化。</p></div>';
+}
 else if(apiMountTarget && !cfg.ENABLE_API_FEED){ apiMountTarget.innerHTML = '<div class="tweet"><p class="more-note small">APIフィードは本番構成で無効化中。UC_FEED.ENABLE_API_FEED=true で有効化。</p></div>'; }
 
 if (cfg.USE_WIDGET) {

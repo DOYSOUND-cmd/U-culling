@@ -170,14 +170,18 @@
 <script type="module" src="js/feed-router.js"></script>
 
 
+
+<script type="module" src="js/feed-router.js"></script>
+
+
 <script>
-  // === Production config ===
   window.UC_FEED = {
-    USE_WIDGET: true,        // 本番：公式ウィジェットを有効化
-    ENABLE_API_FEED: false,  // 本番既定：APIフィードは無効（必要なら true にして FEED_ENDPOINT 設定）
-    FEED_ENDPOINT: ''        // 例: '/api/x-feed?user=UcullingHQ'（Cloudflare/Vercelにデプロイ後）
+    USE_WIDGET: false,                         // ← そのままでもOK
+    ENABLE_API_FEED: true,
+    FEED_ENDPOINT: '/api/x-feed?user=UcullingHQ'  // ← Cloudflare/VercelにデプロイしたURL
   };
 </script>
+
 <script type="module" src="js/feed-router.js"></script>
 
 </body>
