@@ -30,7 +30,7 @@ html{ scrollbar-gutter: stable; }
   --step--1: clamp(12px, 0.84rem + 0.2vw, 14px);
   --step-0:  clamp(14px, 1.00rem + 0.2vw, 16px);
   --step-1:  clamp(18px, 1.20rem + 0.6vw, 24px);
-  --step-2:  clamp(26px, 1.7rem  + 1.0vw, 36px);
+  --step-2:  clamp(20px, 1.5rem  + 0.8vw, 30px);
   --step-3:  clamp(34px, 2.2rem  + 1.2vw, 52px);
   --step-4:  clamp(44px, 2.8rem  + 1.6vw, 70px);
 
@@ -370,12 +370,4 @@ a.btn, .btn, .nav a, .show .btn, .menu-toggle{ min-height:44px }
 #shows-upcoming::-webkit-scrollbar-track,
 #shows-past::-webkit-scrollbar-track{ background:rgba(255,255,255,.06); border-radius:999px; }
 #news-list:has(li:nth-child(4)){ height:calc(var(--row-h) * 3 + var(--gap-s) * 2); max-height:none; }
-/* === Mobile: NEWS 見出しを少しだけ小さく === */
-@media (max-width: 480px){
-  #news h2{
-    /* 既定の --step-2 より一回り小さいスケール */
-    font-size: clamp(22px, 1.35rem + 0.6vw, 28px);
-    /* お好みで字間を微調整（任意） */
-    letter-spacing: .01em;
-  }
-}
+
