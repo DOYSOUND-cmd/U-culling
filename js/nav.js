@@ -1,111 +1,66 @@
+// js/nav.js  —— モバイルドロワー用 完全版
 const btn = document.querySelector('.menu-toggle');
 const nav = document.getElementById('global-nav');
 const backdrop = document.querySelector('.nav-backdrop');
-const BREAKPOINT = 768;
-let lastFocused = null;
-let scrollLockY = 0;
 
-function lockScroll(){
-  scrollLockY = window.scrollY || document.documentElement.scrollTop;
-  document.body.style.position = 'fixed';
-  document.body.style.top = `-${scrollLockY}px`;
-  document.body.style.left = '0'; document.body.style.right = '0';
-  document.body.style.width = '100%';
-}
-function unlockScroll(){
-  document.body.style.position = '';
-  document.body.style.top = '';
-  document.body.style.left = '';
-  document.body.style.right = '';
-  document.body.style.width = '';
-  window.scrollTo(0, scrollLockY);
-}
+const state = {
+  isOpen: false,
+  lastScrollY: 0,
+};
 
-function openNav(){
-  if (document.body.classList.contains('nav-open')) return;
-  lastFocused = document.activeElement;
+function openMenu() {
+  if (state.isOpen) return;
+  state.isOpen = true;
+
+  // スクロール固定（アドレスバー縮み対策で body にのみ適用）
+  state.lastScrollY = window.scrollY;
+  const sbw = window.innerWidth - document.documentElement.clientWidth; // スクロールバー幅補正（PCでも崩れない）
+  document.documentElement.style.setProperty('--lock-pad', `${sbw}px`);
+  document.body.style.overflow = 'hidden';
+  document.body.style.paddingRight = 'var(--lock-pad)';
+
   document.body.classList.add('nav-open');
-  btn.setAttribute('aria-expanded','true');
-  nav.setAttribute('aria-hidden','false');
-  nav.removeAttribute('inert');
-  backdrop.hidden = false;
-  lockScroll();
-
-  // Focus first link
-  const firstLink = nav.querySelector('a,button'); firstLink?.focus();
+  btn?.setAttribute('aria-expanded', 'true');
+  if (backdrop) backdrop.hidden = false;
 }
 
-function closeNav(focusBack=true){
-  if (!document.body.classList.contains('nav-open')) return;
+function closeMenu() {
+  if (!state.isOpen) return;
+  state.isOpen = false;
+
   document.body.classList.remove('nav-open');
-  btn.setAttribute('aria-expanded','false');
-  nav.setAttribute('aria-hidden','true');
-  nav.setAttribute('inert','');
-  backdrop.hidden = true;
-  unlockScroll();
-  if (focusBack) lastFocused?.focus();
+  btn?.setAttribute('aria-expanded', 'false');
+  if (backdrop) backdrop.hidden = true;
+
+  // スクロール固定解除
+  document.body.style.overflow = '';
+  document.body.style.paddingRight = '';
+  document.documentElement.style.removeProperty('--lock-pad');
+  window.scrollTo({ top: state.lastScrollY });
 }
 
-function isMobile(){ return window.innerWidth < BREAKPOINT; }
+function toggleMenu() {
+  state.isOpen ? closeMenu() : openMenu();
+}
 
-// Toggle
-btn.addEventListener('click', ()=>{
-  const expanded = btn.getAttribute('aria-expanded') === 'true';
-  expanded ? closeNav() : openNav();
+// イベント束ね
+btn?.addEventListener('click', toggleMenu, { passive: true });
+
+// 背景タップで閉じる
+backdrop?.addEventListener('click', closeMenu, { passive: true });
+
+// メニュー内のリンクで閉じる（伝播元が <a> なら）
+nav?.addEventListener('click', (e) => {
+  const a = e.target.closest('a');
+  if (a) closeMenu();
 });
 
-// Backdrop click
-backdrop.addEventListener('click', ()=> closeNav());
-
-// ESC close
-document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeNav(); });
-
-// Focus trap when open
-nav.addEventListener('keydown', (e)=>{
-  if(e.key !== 'Tab' || !document.body.classList.contains('nav-open')) return;
-  const focusables = nav.querySelectorAll('a, button');
-  if(!focusables.length) return;
-  const first = focusables[0];
-  const last = focusables[focusables.length - 1];
-  if(e.shiftKey && document.activeElement === first){ last.focus(); e.preventDefault(); }
-  else if(!e.shiftKey && document.activeElement === last){ first.focus(); e.preventDefault(); }
+// Esc で閉じる（モバイル/PC両対応）
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeMenu();
 });
 
-// Close on link click (same-page anchors)
-nav.addEventListener('click', (e)=>{
-  const a = e.target.closest('a[href]');
-  if(!a) return;
-  if(isMobile()){ closeNav(false); } // keep browser default focus
+// 回転・リサイズ時の安全策：開いている最中は閉じる
+window.addEventListener('resize', () => {
+  if (state.isOpen) closeMenu();
 });
-
-// Close on hash change
-window.addEventListener('hashchange', ()=>{ if(isMobile()) closeNav(false); });
-
-// Handle resize: if >= BREAKPOINT, ensure drawer state reset
-window.addEventListener('resize', ()=>{
-  if(!isMobile()){
-    // reset states for desktop
-    nav.removeAttribute('aria-hidden');
-    nav.removeAttribute('inert');
-    backdrop.hidden = true;
-    if (document.body.classList.contains('nav-open')) closeNav(false);
-  }else{
-    // mobile initial hidden state
-    if(!document.body.classList.contains('nav-open')){
-      nav.setAttribute('aria-hidden','true');
-      nav.setAttribute('inert','');
-    }
-  }
-});
-
-// Initialize state
-(function init(){
-  btn.setAttribute('aria-expanded','false');
-  if(isMobile()){
-    nav.setAttribute('aria-hidden','true');
-    nav.setAttribute('inert','');
-  }else{
-    nav.removeAttribute('aria-hidden');
-    nav.removeAttribute('inert');
-  }
-})();

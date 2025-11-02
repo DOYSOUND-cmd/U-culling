@@ -372,11 +372,17 @@ a.btn, .btn, .nav a, .show .btn, .menu-toggle{ min-height:44px }
 #news-list:has(li:nth-child(4)){ height:calc(var(--row-h) * 3 + var(--gap-s) * 2); max-height:none; }
 
 /* === Mobile: NEWS 見出しを少しだけ小さく === */
-@media (max-width: 380px){
+@media (max-width: 350px){
   #news h2{
     /* 既定の --step-2 より一回り小さいスケール */
-    font-size: clamp(22px, 1.35rem + 0.6vw, 28px);
+    font-size: clamp(22px, 1rem + 0.2vw, 28px);
     /* お好みで字間を微調整（任意） */
     letter-spacing: .01em;
   }
 }
+
+@media (max-width: 767.98px){
+  body:not(.nav-open) .nav{ visibility:hidden; pointer-events:none; }
+  body.nav-open .nav{ visibility:visible; pointer-events:auto; transform: translateX(0); }
+}
+
