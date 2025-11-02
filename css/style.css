@@ -1,28 +1,20 @@
 /* ===============================
-   U-culling Rock Theme — Stage Lights (overflow & top-gap fixed)
+   U-culling Rock Theme — Stage Lights (header/top-gap fixed)
    =============================== */
 
-/* ===== Reset / Layout guards ===== */
-*{ box-sizing:border-box }
-html,body{ margin:0; padding:0; height:auto; }
-html{ /* 両端確保は一部環境で横ズレの原因 → stable のみに */
-  scrollbar-gutter: stable;
-}
-body{
-  color:#e6e6e6; background:#0a0a0b;
-  font:400 clamp(14px, 1.00rem + 0.2vw, 16px)/1.75 "Inter","Noto Sans JP",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
-  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
-  /* 画面端を超えない背景（縦方向の“謎の余白”防止） */
-  background-image:
-    radial-gradient(1200px 600px at 70% -10%, rgba(225,29,42,.10), transparent 60%),
-    radial-gradient(900px 500px  at 10% 110%, rgba(225,29,42,.08), transparent 60%),
-    repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 1px, transparent 1px 2px);
-  overflow-x:hidden; /* 横スクロールの完全抑止 */
-}
+/* ---- Minimal reset ---- */
+*,
+*::before,
+*::after{ box-sizing:border-box }
+html, body{ margin:0; padding:0; height:auto }
+body, h1, h2, h3, p, ul, ol, figure{ margin:0 }
+ul, ol{ padding:0; list-style:none }
+img, svg, video{ display:block; max-width:100% }
+html{ scrollbar-gutter: stable; }
 
-/* ========== Tokens ========== */
 :root{
-  --panel:#111; --line:#1f1f1f;
+  /* Colors */
+  --bg:#0a0a0b; --panel:#111; --line:#1f1f1f;
   --fg:#e6e6e6; --muted:#a3a3a3;
   --scarlet:#e11d2a; --scarlet-2:#ff3b30; --accent:#ff3b30;
 
@@ -46,30 +38,41 @@ body{
   --gap-s:12px;
   --news-h:110px;
   --show-h:124px;
+
+  /* Header height (mobile default) */
+  --header-h:56px;
 }
 @media (max-width:480px){
   :root{ --news-h:96px; --show-h:110px; }
 }
+@media (min-width:768px){
+  :root{ --header-h:64px; }
+}
 
-/* ========== Stage-light custom properties ========== */
+/* ---- Base ---- */
+body{
+  color:var(--fg); background:var(--bg);
+  font:400 var(--step-0)/1.75 "Inter","Noto Sans JP",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  background-image:
+    radial-gradient(1200px 600px at 70% -10%, rgba(225,29,42,.10), transparent 60%),
+    radial-gradient(900px 500px  at 10% 110%, rgba(225,29,42,.08), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 1px, transparent 1px 2px);
+  overflow-x:hidden;
+}
+
+/* ===== Stage-light custom properties ===== */
 @property --a1 { syntax:'<angle>'; inherits:false; initial-value:-20deg; }
 @property --a2 { syntax:'<angle>'; inherits:false; initial-value: 20deg; }
 @property --a3 { syntax:'<angle>'; inherits:false; initial-value:-10deg; }
 @property --a4 { syntax:'<angle>'; inherits:false; initial-value: 10deg; }
 
-/* === Global Stage Lights (scrollbar・上部の謎領域対策版) ===
-   1) viewport固定サイズ（100vw/100dvh）
-   2) 画面外描画を clip（Chrome/Edge/Firefox）
-   3) 負の座標を使わず、背景位置は 0〜100% に限定
-   4) transform を使わず、GPU丸め誤差による 1px overflow を回避
-*/
+/* === Global Stage Lights (no overflow / no top-gap) === */
 body::after{
   content:"";
-  position:fixed;
-  top:0; left:0; width:100vw; height:100dvh;
+  position:fixed; top:0; left:0; width:100vw; height:100dvh;
   pointer-events:none; z-index:0; opacity:var(--sl-opacity);
-  overflow:clip;         /* ← 画面外の描画でスクロールが出るのを抑止 */
-  contain: paint;        /* ← レイヤを閉じてはみ出し検知を局所化 */
+  overflow:clip; contain:paint;
 
   --a1:-20deg; --a2:20deg; --a3:-10deg; --a4:10deg;
 
@@ -102,12 +105,47 @@ body::after{
     sweep4 12s ease-in-out infinite alternate-reverse;
 }
 
-/* コンテンツは必ず前面 */
-header, .hero__inner, .section .container, .site-footer{ position:relative; z-index:3; }
+/* ---- Content should always be above lights ---- */
+header, .hero__inner, .section .container, .site-footer{ position:relative; z-index:3 }
 
-/* ========== Headings / Layout ========== */
+/* ================= Header (fixed) ================= */
+.site-header{
+  position:fixed; inset:0 0 auto 0; /* top:0; left:0; right:0 */
+  height:var(--header-h);
+  display:flex; align-items:center; gap:16px;
+  padding:0 16px; box-sizing:border-box;
+  background:rgba(10,10,11,.85);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  z-index:50;
+}
+.menu-toggle{ /* visible only on mobile via media query below */ 
+  display:none; margin-left:auto; width:44px; height:44px;
+  border:1px solid rgba(255,59,48,.45);
+  border-radius:10px; background:rgba(225,29,42,.08); color:#f2f2f2; cursor:pointer;
+}
+.menu-toggle__bar{ display:block; width:22px; height:2px; background:#ffb3b3; margin:6px auto }
+
+.nav{ margin-left:auto; display:flex; gap:12px; flex-wrap:wrap }
+.nav a{
+  padding:6px 12px; border-radius:8px; color:#eaeaea; text-decoration:none;
+  transition: transform .12s ease, background .2s ease, box-shadow .2s ease;
+}
+.nav a:hover{
+  background:rgba(225,29,42,.14);
+  box-shadow:0 0 24px rgba(255,59,48,.18) inset;
+  transform:translateY(-1px);
+}
+.nav--accent{ border:1px solid rgba(255,59,48,.45); background:rgba(225,29,42,.08) }
+.nav--accent[aria-disabled="true"]{ opacity:.6; cursor:not-allowed }
+
+/* ---- Offset main content for fixed header ---- */
+main{ padding-top: calc(var(--header-h) + 8px); }
+
+/* ================= Layout / Headings ================= */
 a{ color:var(--scarlet); text-underline-offset:2px }
 a:hover{ color:var(--accent) }
+
 .container{ max-width:var(--maxw); margin:0 auto; padding:0 20px }
 .section{ padding:68px 0; border-top:1px solid var(--line); position:relative }
 .section--alt{ background:linear-gradient(180deg, rgba(255,255,255,.03), transparent) }
@@ -127,30 +165,13 @@ h2::before{
 h3{ font-size:var(--step-1) }
 .lead{ font-size:var(--step-1); opacity:.96 }
 
-/* ========== Header / Nav ========== */
-.site-header{
-  position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:16px;
-  padding:10px 16px; background:rgba(10,10,11,.75);
-  backdrop-filter:blur(10px); border-bottom:1px solid rgba(255,255,255,.06);
-  margin-top:0; /* 上部の謎余白保険 */
-}
-.brand{ display:flex; align-items:center; gap:12px }
-.nav{ margin-left:auto; display:flex; gap:12px; flex-wrap:wrap }
-.nav a{
-  padding:6px 12px; border-radius:8px; color:#eaeaea; text-decoration:none;
-  transition: transform .12s ease, background .2s ease, box-shadow .2s ease;
-}
-.nav a:hover{ background:rgba(225,29,42,.14); box-shadow:0 0 24px rgba(255,59,48,.18) inset; transform:translateY(-1px); }
-.nav--accent{ border:1px solid rgba(255,59,48,.45); background:rgba(225,29,42,.08) }
-.nav--accent[aria-disabled="true"]{ opacity:.6; cursor:not-allowed }
-
-/* ========== Hero ========== */
+/* ================= Hero ================= */
 .hero{ position:relative; min-height:66vh; display:grid; place-items:center; text-align:center }
 .hero__bg{
   position:absolute; inset:0;
   background:
     linear-gradient(180deg, rgba(10,10,11,.35), rgba(10,10,11,.90)),
-    url("../assets/hero.jpg") center/cover no-repeat; /* fixed は overflow の原因になりやすいので禁止 */
+    url("../assets/hero.jpg") center/cover no-repeat; /* fixed は使用しない */
   filter:saturate(1.05) contrast(1.02);
 }
 .hero__inner{ position:relative; padding:40px 16px }
@@ -166,13 +187,13 @@ h3{ font-size:var(--step-1) }
 
 .cta{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:18px }
 
-/* ========== Stage-light keyframes ========== */
+/* ---- Stage-light keyframes ---- */
 @keyframes sweep1 { 0%{ --a1:-35deg } 100%{ --a1: 35deg } }
 @keyframes sweep2 { 0%{ --a2: 40deg } 100%{ --a2:-40deg } }
 @keyframes sweep3 { 0%{ --a3:-60deg } 100%{ --a3: 60deg } }
 @keyframes sweep4 { 0%{ --a4: 65deg } 100%{ --a4:-65deg } }
 
-/* ========== Buttons ========== */
+/* ================= Buttons ================= */
 .btn{
   display:inline-flex; align-items:center; justify-content:center;
   padding:10px 18px; border-radius:10px;
@@ -185,8 +206,8 @@ h3{ font-size:var(--step-1) }
 .btn--ghost{ background:transparent; color:#f2f2f2; border:1px solid rgba(255,59,48,.5); box-shadow:none }
 .btn--ghost:hover{ background:rgba(225,29,42,.10); box-shadow:0 0 22px rgba(255,59,48,.25) inset }
 
-/* ========== NEWS ========== */
-.news-list{ list-style:none; padding:0; margin:0; display:grid; gap:var(--gap-s) }
+/* ================= NEWS ================= */
+.news-list{ list-style:none; display:grid; gap:var(--gap-s) }
 .news{
   display:grid; gap:6px; padding:14px;
   background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
@@ -195,10 +216,10 @@ h3{ font-size:var(--step-1) }
 }
 .news__meta{ color:var(--muted); font-size:var(--step--1); display:flex; gap:10px; flex-wrap:wrap }
 
-/* ========== SHOWS ========== */
+/* ================= SHOWS ================= */
 .shows{ display:grid; gap:22px; grid-template-columns:1fr }
 @media (min-width:800px){ .shows{ grid-template-columns:1fr 1fr } }
-.list{ list-style:none; padding:0; margin:0; display:grid; gap:var(--gap-s) }
+.list{ list-style:none; display:grid; gap:var(--gap-s) }
 .show{
   display:grid; gap:10px; padding:14px;
   background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
@@ -209,7 +230,7 @@ h3{ font-size:var(--step-1) }
 .show__where{ color:var(--muted) }
 .show__cta{ display:flex; gap:8px; flex-wrap:wrap }
 
-/* ========== Cards / Grid ========== */
+/* ================= Cards / Grid ================= */
 .grid{ display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)) }
 .card{
   background:var(--panel); border:1px solid rgba(255,255,255,.08);
@@ -222,7 +243,7 @@ h3{ font-size:var(--step-1) }
 .card__meta{ color:var(--muted); font-size:var(--step--1) }
 .tags{ display:none }
 
-/* ========== Member social icons ========== */
+/* ================= Member social icons ================= */
 .social-row{ display:flex; gap:8px; margin-top:10px; align-items:center }
 .social-row .social-icon{
   display:inline-flex; width:22px; height:22px; border-radius:6px;
@@ -233,7 +254,7 @@ h3{ font-size:var(--step-1) }
 .social-row .social-icon img{ width:14px; height:14px; object-fit:contain; filter:drop-shadow(0 0 4px rgba(255,59,48,.2)) }
 .social-row .social-icon:hover{ transform:translateY(-1px); background:rgba(225,29,42,.10) }
 
-/* ========== Members Carousel ========== */
+/* ================= Members Carousel ================= */
 #members-carousel{ position:relative; }
 #members-carousel .carousel__scroller{
   display:grid; grid-auto-flow:column; gap:16px;
@@ -262,7 +283,7 @@ h3{ font-size:var(--step-1) }
 #members-dots > button{ width:8px; height:8px; border-radius:50%; border:0; background:rgba(255,255,255,.28) }
 #members-dots > button.is-active{ background:var(--scarlet) }
 
-/* ========== VIDEO ========== */
+/* ================= VIDEO ================= */
 .media-yt-grid{ display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)) }
 .media-yt-grid iframe{
   width:100%; aspect-ratio:16/9; border:0; border-radius:12px;
@@ -271,36 +292,27 @@ h3{ font-size:var(--step-1) }
 .embed-yt{ position:relative; width:100%; aspect-ratio:16/9; background:#000; border-radius:12px; overflow:hidden; box-shadow:0 8px 28px rgba(0,0,0,.35) }
 .embed-yt iframe{ position:absolute; inset:0; width:100%; height:100%; border:0 }
 
-/* ========== Footer & Social ========== */
+/* ================= Footer & Social ================= */
 .social{ display:grid; gap:10px; grid-template-columns:24px 1fr; align-items:center; margin-top:8px }
 .icon{ width:20px; height:20px; fill:#ff6b6b }
 .site-footer{ padding:30px 16px; text-align:center; color:var(--muted); border-top:1px solid var(--line) }
 .more-note{ color:var(--muted); font-size:var(--step--1); margin-top:8px }
 
-/* ========== Drawer / Responsive ========== */
-.site-header{ padding-top:10px; padding-bottom:10px } /* env(safe-area) はデスクトップで不要 */
-.site-footer{ padding-bottom:30px }
-
-.menu-toggle{
-  display:none; margin-left:auto; width:44px; height:44px; border:1px solid rgba(255,59,48,.45);
-  border-radius:10px; background:rgba(225,29,42,.08); color:#f2f2f2; cursor:pointer;
-}
-.menu-toggle__bar{ display:block; width:22px; height:2px; background:#ffb3b3; margin:6px auto }
-
+/* ================= Drawer / Responsive ================= */
 @media (max-width:767.98px){
   body:not(.nav-open) .nav{ visibility:hidden; pointer-events:none }
-  body.nav-open .nav{ visibility:visible; pointer-events:auto }
-
   .menu-toggle{ display:inline-flex; align-items:center; justify-content:center }
+
   .nav{
-    position:fixed; top:56px; right:0; /* safe-area を外し、固定値にしてズレ対策 */
-    width:min(80vw,340px); height: calc(100dvh - 56px);
+    position:fixed; top:var(--header-h); right:0;
+    width:min(80vw,340px); height: calc(100dvh - var(--header-h));
     background: rgba(17,17,17,.98); border-left:1px solid rgba(255,255,255,.08);
     transform:translateX(100%); transition:transform .2s ease; padding:16px; display:grid; gap:8px; z-index:60;
   }
   body.nav-open .nav{ transform:translateX(0) }
   .nav a{ padding:12px 10px; font-size:clamp(16px, 1rem + 0.2vw, 18px); border-radius:10px; background:transparent; border:1px solid rgba(255,255,255,.10) }
   .nav a:hover{ background:rgba(225,29,42,.10) }
+
   .nav-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.45); backdrop-filter:blur(2px); z-index:55; display:none }
   body.nav-open .nav-backdrop{ display:block }
 
@@ -323,38 +335,31 @@ h3{ font-size:var(--step-1) }
   .grid{ grid-template-columns:repeat(4, minmax(0,1fr)) }
 }
 
-/* ========== A11y / Robustness ========== */
+/* ================= A11y / Robustness ================= */
 a.btn, .btn, .nav a, .show .btn, .menu-toggle{ min-height:44px }
 .card__meta, .about, .news, .show{ overflow-wrap:anywhere; word-break:break-word }
 @media (prefers-reduced-motion: reduce){
   body::after{ animation:none; opacity:.25 }
 }
 
-/* ========== “3件表示＋スクロール” 共通化 ========== */
+/* ================= “3件表示＋スクロール” 共通化 ================= */
 #news-list{ --row-h:var(--news-h); }
 #shows-upcoming, #shows-past{ --row-h:var(--show-h); }
-
-#news-list,
-#shows-upcoming,
-#shows-past{
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
+#news-list, #shows-upcoming, #shows-past{
+  overflow-y:auto; -webkit-overflow-scrolling:touch;
   max-height:calc(var(--row-h) * 3 + var(--gap-s) * 2);
   padding-right:6px; scrollbar-gutter:stable;
 }
-
 #news-list > li.news,
 #shows-upcoming > li.show,
 #shows-past > li.show{
   min-height:var(--row-h);
   display:grid; align-content:start;
 }
-
 #news-list > li.news h3,
 #news-list > li.news p{
   display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
 }
-
 #news-list::-webkit-scrollbar,
 #shows-upcoming::-webkit-scrollbar,
 #shows-past::-webkit-scrollbar{ width:8px; }
@@ -364,9 +369,13 @@ a.btn, .btn, .nav a, .show .btn, .menu-toggle{ min-height:44px }
 #news-list::-webkit-scrollbar-track,
 #shows-upcoming::-webkit-scrollbar-track,
 #shows-past::-webkit-scrollbar-track{ background:rgba(255,255,255,.06); border-radius:999px; }
-
-/* :has 対応時のみ 4件目以降で高さ固定（必ずスクロールが必要に） */
-#news-list:has(li:nth-child(4)){
-  height:calc(var(--row-h) * 3 + var(--gap-s) * 2);
-  max-height:none;
+#news-list:has(li:nth-child(4)){ height:calc(var(--row-h) * 3 + var(--gap-s) * 2); max-height:none; }
+/* === Mobile: NEWS 見出しを少しだけ小さく === */
+@media (max-width: 480px){
+  #news h2{
+    /* 既定の --step-2 より一回り小さいスケール */
+    font-size: clamp(22px, 1.35rem + 0.6vw, 28px);
+    /* お好みで字間を微調整（任意） */
+    letter-spacing: .01em;
+  }
 }

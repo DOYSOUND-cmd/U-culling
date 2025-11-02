@@ -17,16 +17,6 @@
     }
   },
   {
-    "name": "DOYSOUND",
-    "role": "Backing Guitar",
-    "image": "assets/member_guitarB.png",
-    "social": {
-      "X": "https://x.com/sh1sh4mo33",
-      "VRChat": "https://vrchat.com/home/user/usr_5d3289b7-5064-406b-8b66-7a7be2f0e292",
-      "Github": "https://doysound-cmd.github.io/Portfolio/"
-    }
-  },
-  {
     "name": "plateck0118",
     "role": "Bass",
     "image": "assets/member_bass.jpg",
@@ -42,6 +32,16 @@
     "social": {
       "X": "https://x.com/namayakiVRC",
       "VRChat": "https://vrchat.com/home/user/usr_fdc1e1f5-7692-4ddc-bc2b-4112fde1172b"
+    }
+  },
+  {
+    "name": "DOYSOUND",
+    "role": "Backing Guitar",
+    "image": "assets/member_guitarB.png",
+    "social": {
+      "X": "https://x.com/sh1sh4mo33",
+      "VRChat": "https://vrchat.com/home/user/usr_5d3289b7-5064-406b-8b66-7a7be2f0e292",
+      "Github": "https://doysound-cmd.github.io/Portfolio/"
     }
   }
 ]
