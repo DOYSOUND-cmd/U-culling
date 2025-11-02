@@ -9,7 +9,7 @@
 /* ------------------------------
  * ヘルパ
  * ------------------------------ */
-const $ = (sel, root = document) => root.querySelector(sel);
+const $  = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
 async function loadJSON(url) {
@@ -26,8 +26,7 @@ async function loadJSON(url) {
 function fmtDate(input) {
   // 受け取り: "2025-11-02" / "2025/11/02" / ISO 等
   if (!input) return "";
-  // スラッシュ → ハイフン
-  const s = String(input).replace(/\//g, "-");
+  const s = String(input).replace(/\//g, "-"); // スラッシュ → ハイフン
   const d = new Date(s);
   if (isNaN(d)) return String(input);
   // YYYY.MM.DD
@@ -71,20 +70,21 @@ async function renderNews() {
     const li = document.createElement("li");
     li.className = "news";
 
-    const title = n.title || n.text || "(no title)";
+    const titleText = n.title || n.text || "(no title)";
     const date = fmtDate(n.date || n.published_at);
-    const tag = n.tag || n.category || "";
+    const tag  = n.tag || n.category || "";
 
     const h3 = document.createElement("h3");
+    h3.className = "news__title item-title"; // ← NEWS/SHOWS 統一サイズ用
     if (n.url) {
       const a = document.createElement("a");
       a.href = n.url;
       a.target = "_blank";
       a.rel = "noopener";
-      a.textContent = title;
+      a.textContent = titleText;
       h3.appendChild(a);
     } else {
-      h3.textContent = title;
+      h3.textContent = titleText;
     }
 
     const meta = document.createElement("div");
@@ -134,22 +134,24 @@ function makeShowLi(show) {
   const li = document.createElement("li");
   li.className = "show";
 
-  const line = document.createElement("div");
-  line.className = "show__line";
-
-  const title = document.createElement("strong");
+  const title = document.createElement("h3");
+  title.className = "show__title item-title"; // ← NEWS と統一
   title.textContent = show.title || "(untitled)";
 
+  const line = document.createElement("div");
+  line.className = "show__line";
   const dateEl = document.createElement("span");
   dateEl.textContent = fmtDate(show.date);
-
   line.append(title, dateEl);
 
   const where = document.createElement("div");
   where.className = "show__where";
   const venue = show.venue ? ` @ ${show.venue}` : "";
-  const city = show.city ? ` (${show.city})` : "";
-  where.textContent = (show.open ? `OPEN ${show.open} ` : "") + (show.start ? `/ START ${show.start}` : "") + venue + city;
+  const city  = show.city  ? ` (${show.city})` : "";
+  where.textContent =
+    (show.open ? `OPEN ${show.open} ` : "") +
+    (show.start ? `/ START ${show.start}` : "") +
+    venue + city;
 
   const cta = document.createElement("div");
   cta.className = "show__cta";
@@ -195,7 +197,7 @@ async function renderShows() {
   } else {
     // { upcoming:[], past:[] } 形式
     upcoming = Array.isArray(data.upcoming) ? data.upcoming.slice() : [];
-    past = Array.isArray(data.past) ? data.past.slice() : [];
+    past     = Array.isArray(data.past)     ? data.past.slice()     : [];
   }
 
   // ソート: upcoming=日付昇順 / past=日付降順
@@ -227,8 +229,6 @@ const ICONS_MAP = {
   x: "assets/X.png",
   vrchat: "assets/VRChat.png",
   github: "assets/github-mark-white.png",
-  // 追加したい場合:
-  // youtube: 'assets/icons.svg#youtube', // ← SVGスプライトを使う例
 };
 
 function getIconSpec(key) {
@@ -253,15 +253,9 @@ function makeIcon(key, url) {
     img.alt = key;
     img.loading = "lazy";
     img.src = spec.src;
-    img.width = 14; // CSSが無い環境でも最低限揃うよう幅高さ付与
+    img.width = 14;
     img.height = 14;
-    img.addEventListener(
-      "error",
-      () => {
-        img.src = ICONS_MAP["x"];
-      },
-      { once: true }
-    );
+    img.addEventListener("error", () => { img.src = ICONS_MAP["x"]; }, { once: true });
     a.appendChild(img);
   } else {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -280,18 +274,17 @@ function makeIcon(key, url) {
 function normalizeMembers(arr) {
   return (arr || []).map((m) => {
     const social = {};
-    // JSON 側のキーが "X", "VRChat", "Github" などバラつく想定
     Object.entries(m.social || {}).forEach(([k, v]) => {
       if (!v) return;
       const key = String(k).toLowerCase();
       if (key.includes("vrchat")) social.vrchat = v;
       else if (key === "x" || key.includes("twitter")) social.x = v;
       else if (key.includes("git")) social.github = v;
-      else social[key] = v; // その他はそのまま
+      else social[key] = v;
     });
     return {
-      name: m.name || "",
-      role: m.role || "",
+      name:  m.name  || "",
+      role:  m.role  || "",
       image: m.image || "",
       social,
     };
@@ -352,7 +345,7 @@ function setupMembersCarousel(members) {
   // 状態
   let perView = 1;
   let gapPx = 16;
-  let pageSize = 0; // カード1枚ぶんのスクロール距離 (cardWidth + gap)
+  let pageSize = 0; // 1枚ぶんのスクロール距離 (cardWidth + gap)
   let total = scroller.children.length; // 実データ枚数
   let current = 0; // scroller.children のインデックス（クローン含む）
   let timer = null;
@@ -373,13 +366,11 @@ function setupMembersCarousel(members) {
 
   function getComputedGap() {
     const cs = getComputedStyle(scroller);
-    // grid-gap は '16px' のように返る
-    const g = parseFloat(cs.columnGap || cs.gap || "16");
+    const g  = parseFloat(cs.columnGap || cs.gap || "16");
     return Number.isFinite(g) ? g : 16;
   }
 
   function getPerView() {
-    // 可視幅 / 1枚の幅（grid-auto-columns）
     const first = scroller.children[0];
     if (!first) return 1;
     const cardW = first.getBoundingClientRect().width;
@@ -390,7 +381,7 @@ function setupMembersCarousel(members) {
   }
 
   function measure() {
-    gapPx = getComputedGap();
+    gapPx  = getComputedGap();
     perView = getPerView();
     const first = scroller.children[0];
     const cardW = first ? first.getBoundingClientRect().width : 0;
@@ -398,13 +389,11 @@ function setupMembersCarousel(members) {
   }
 
   function clearClones() {
-    // data-clone 属性があるノードを削除
     $$(".card[data-clone]", scroller).forEach((el) => el.remove());
   }
 
   function applyClones() {
     clearClones();
-    // 先頭に末尾から perView 枚、末尾に先頭から perView 枚
     const children = Array.from(scroller.children);
     const head = children.slice(-perView).map((el) => {
       const c = el.cloneNode(true);
@@ -419,19 +408,14 @@ function setupMembersCarousel(members) {
     head.forEach((c) => scroller.insertBefore(c, scroller.firstChild));
     tail.forEach((c) => scroller.appendChild(c));
     // 実データ範囲の先頭へ即座にジャンプ
-    current = perView; // 先頭クローン群の直後＝実データ先頭
+    current = perView;
     jumpToIndex(current);
   }
 
   function jumpToIndex(idx) {
-    // アニメなしで即座に移動（wrap後の補正用）
     scroller.style.scrollBehavior = "auto";
     scroller.scrollLeft = idx * pageSize;
-    // scrollBehavior を戻す
-    // 次回の scrollToIndex が smooth で動作するようタイミングをずらして戻す
-    requestAnimationFrame(() => {
-      scroller.style.scrollBehavior = "";
-    });
+    requestAnimationFrame(() => { scroller.style.scrollBehavior = ""; });
   }
 
   function scrollToIndex(idx) {
@@ -452,12 +436,10 @@ function setupMembersCarousel(members) {
     animating = true;
     current += delta;
     scrollToIndex(current);
-    // ラップ検出用にフラグクリア予約
     setTimeout(() => (animating = false), 360);
   }
 
   function goPrev() {
-    // 左ボタン：1つ左へ（見た目は右→左に流れる）
     stopAuto();
     justJumped = false;
     go(-1);
@@ -465,7 +447,6 @@ function setupMembersCarousel(members) {
   }
 
   function goNext() {
-    // 右ボタン：1つ右へ（見た目は右→左に流れる設定にも合致）
     stopAuto();
     justJumped = false;
     go(+1);
@@ -474,7 +455,6 @@ function setupMembersCarousel(members) {
 
   function goToReal(realIdx) {
     stopAuto();
-    // realIdx を実データ領域の index に変換
     current = perView + realIdx;
     scrollToIndex(current);
     startAuto();
@@ -485,15 +465,12 @@ function setupMembersCarousel(members) {
   function onScrolled() {
     cancelAnimationFrame(wrapRaf);
     wrapRaf = requestAnimationFrame(() => {
-      const maxIndex = perView + total - 1; // 実データ末尾の index
       if (current <= perView - 1) {
-        // 左端クローン域 → 実データ末尾へジャンプ
-        current += total;
+        current += total;  // 左端クローン域 → 実データ末尾へ
         jumpToIndex(current);
         justJumped = true;
       } else if (current >= perView + total) {
-        // 右端クローン域 → 実データ先頭へジャンプ
-        current -= total;
+        current -= total;  // 右端クローン域 → 実データ先頭へ
         jumpToIndex(current);
         justJumped = true;
       } else {
@@ -519,27 +496,20 @@ function setupMembersCarousel(members) {
     });
   }
 
-  // 自動再生
+  // 自動再生（5枚目だけ短くなる問題の抑制: justJumped を考慮）
   const AUTO_MS = 3500;
   function startAuto() {
     stopAuto();
     timer = setInterval(() => {
-      // ラップ直後の “短時間でさらに進む” を抑止
-      if (justJumped) {
-        justJumped = false;
-        return;
-      }
+      if (justJumped) { justJumped = false; return; }
       go(+1);
     }, AUTO_MS);
   }
   function stopAuto() {
-    if (timer) {
-      clearInterval(timer);
-      timer = null;
-    }
+    if (timer) { clearInterval(timer); timer = null; }
   }
 
-  // 初期測定 → クローン適用 → ドット描画 → 自動再生
+  // 初期化
   measure();
   applyClones();
   renderDots();
@@ -557,7 +527,7 @@ function setupMembersCarousel(members) {
   root.addEventListener("mouseenter", stopAuto);
   root.addEventListener("mouseleave", startAuto);
 
-  // リサイズで re-measure & 再配置
+  // リサイズ対応
   let resizeTid = 0;
   window.addEventListener("resize", () => {
     clearTimeout(resizeTid);
@@ -602,7 +572,7 @@ function setupNav() {
   });
 
   backdrop?.addEventListener("click", close);
-  // フォーカス外れたら閉じるなどは必要に応じて
+  // 必要なら Esc なども追加可能
 }
 
 /* ------------------------------

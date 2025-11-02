@@ -1,17 +1,8 @@
 /* ===============================
-   U-culling Rock Theme — Stage Lights (header/top-gap fixed)
+   U-culling Rock Theme — Global Stage Lights (Refactored)
    =============================== */
 
-/* ---- Minimal reset ---- */
-*,
-*::before,
-*::after{ box-sizing:border-box }
-html, body{ margin:0; padding:0; height:auto }
-body, h1, h2, h3, p, ul, ol, figure{ margin:0 }
-ul, ol{ padding:0; list-style:none }
-img, svg, video{ display:block; max-width:100% }
-html{ scrollbar-gutter: stable; }
-
+/* ========== Tokens ========== */
 :root{
   /* Colors */
   --bg:#0a0a0b; --panel:#111; --line:#1f1f1f;
@@ -26,77 +17,59 @@ html{ scrollbar-gutter: stable; }
   --radius:12px; --shadow:0 12px 40px rgba(0,0,0,.45);
   --maxw:1160px;
 
-  /* Type scale */
+  /* Typography scale */
   --step--1: clamp(12px, 0.84rem + 0.2vw, 14px);
   --step-0:  clamp(14px, 1.00rem + 0.2vw, 16px);
   --step-1:  clamp(18px, 1.20rem + 0.6vw, 24px);
-  --step-2:  clamp(20px, 1.5rem  + 0.8vw, 30px);
+  --step-2:  clamp(26px, 1.7rem  + 1.0vw, 36px);
   --step-3:  clamp(34px, 2.2rem  + 1.2vw, 52px);
   --step-4:  clamp(44px, 2.8rem  + 1.6vw, 70px);
 
-  /* Scroll panel */
-  --gap-s:12px;
-  --news-h:110px;
-  --show-h:124px;
+  /* Scroll panel (3 items view) */
+  --gap-s: 12px;
+  --news-h: 110px; /* NEWS card height */
+  --show-h: 124px; /* SHOW card height */
 
-  /* Header height (mobile default) */
-  --header-h:56px;
+  /* NEWS / SHOWS タイトルの共通サイズ */
+  --content-title-size: var(--step-1);
 }
+
+/* 小さめ端末での3件ビュー調整 */
 @media (max-width:480px){
   :root{ --news-h:96px; --show-h:110px; }
 }
-@media (min-width:768px){
-  :root{ --header-h:64px; }
-}
 
-/* ---- Base ---- */
+/* ========== Typed custom properties for smooth stage-light animation ========== */
+@property --a1 { syntax:'<angle>'; inherits:false; initial-value:-20deg; }
+@property --a2 { syntax:'<angle>'; inherits:false; initial-value: 20deg; }
+@property --a3 { syntax:'<angle>'; inherits:false; initial-value:-10deg; }
+@property --a4 { syntax:'<angle>'; inherits:false; initial-value: 10deg; }
+
+/* ========== Base / Typography ========== */
+*{ box-sizing:border-box }
+html,body{ height:100% }
+html{ scrollbar-gutter:stable both-edges; }
 body{
-  color:var(--fg); background:var(--bg);
+  margin:0; color:var(--fg); background:var(--bg);
   font:400 var(--step-0)/1.75 "Inter","Noto Sans JP",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
   -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
   background-image:
     radial-gradient(1200px 600px at 70% -10%, rgba(225,29,42,.10), transparent 60%),
     radial-gradient(900px 500px  at 10% 110%, rgba(225,29,42,.08), transparent 60%),
     repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 1px, transparent 1px 2px);
-  overflow-x:hidden;
 }
 
-/* ===== Stage-light custom properties ===== */
-@property --a1 { syntax:'<angle>'; inherits:false; initial-value:-20deg; }
-@property --a2 { syntax:'<angle>'; inherits:false; initial-value: 20deg; }
-@property --a3 { syntax:'<angle>'; inherits:false; initial-value:-10deg; }
-@property --a4 { syntax:'<angle>'; inherits:false; initial-value: 10deg; }
-
-/* === Global Stage Lights (no overflow / no top-gap) === */
+/* === Global Stage Lights overlay === */
 body::after{
   content:"";
-  position:fixed; top:0; left:0; width:100vw; height:100dvh;
+  position:fixed; inset:-12vh -12vw;
   pointer-events:none; z-index:0; opacity:var(--sl-opacity);
-  overflow:clip; contain:paint;
-
   --a1:-20deg; --a2:20deg; --a3:-10deg; --a4:10deg;
-
   background:
-    conic-gradient(from var(--a1) at 35% 0%,
-      transparent 0turn, #0a0a1aa6 0.40turn,
-      color-mix(in srgb, var(--sl-c1) 100%, transparent) 0.50turn,
-      #0a0a1aa6 0.60turn, transparent 1turn),
-    conic-gradient(from var(--a2) at 65% 0%,
-      transparent 0turn, #0a0a1aa6 0.40turn,
-      color-mix(in srgb, var(--sl-c2) 100%, transparent) 0.50turn,
-      #0a0a1aa6 0.60turn, transparent 1turn),
-    conic-gradient(from var(--a3) at 15% 10%,
-      transparent 0turn, #0a0a1a99 0.35turn,
-      color-mix(in srgb, var(--sl-c3) 100%, transparent) 0.50turn,
-      #0a0a1a99 0.65turn, transparent 1turn),
-    conic-gradient(from var(--a4) at 85% 10%,
-      transparent 0turn, #0a0a1a99 0.35turn,
-      color-mix(in srgb, var(--sl-c4) 100%, transparent) 0.50turn,
-      #0a0a1a99 0.65turn, transparent 1turn);
-  background-repeat:no-repeat;
-  background-size:130% 130%, 130% 130%, 150% 150%, 150% 150%;
-  background-position:50% 0%, 50% 0%, 50% 10%, 50% 10%;
-
+    conic-gradient(from var(--a1) at 35% -20%, transparent 0turn, #0a0a1aa6 0.40turn, color-mix(in srgb, var(--sl-c1) 100%, transparent) 0.50turn, #0a0a1aa6 0.60turn, transparent 1turn),
+    conic-gradient(from var(--a2) at 65% -20%, transparent 0turn, #0a0a1aa6 0.40turn, color-mix(in srgb, var(--sl-c2) 100%, transparent) 0.50turn, #0a0a1aa6 0.60turn, transparent 1turn),
+    conic-gradient(from var(--a3) at 10% -10%, transparent 0turn, #0a0a1a99 0.35turn, color-mix(in srgb, var(--sl-c3) 100%, transparent) 0.50turn, #0a0a1a99 0.65turn, transparent 1turn),
+    conic-gradient(from var(--a4) at 90% -10%, transparent 0turn, #0a0a1a99 0.35turn, color-mix(in srgb, var(--sl-c4) 100%, transparent) 0.50turn, #0a0a1a99 0.65turn, transparent 1turn);
   filter:saturate(1.08) contrast(1.05);
   animation:
     sweep1 6s ease-in-out infinite alternate,
@@ -104,45 +77,10 @@ body::after{
     sweep3 10s ease-in-out infinite alternate,
     sweep4 12s ease-in-out infinite alternate-reverse;
 }
+/* コンテンツ層を常にステージライトより前面へ */
+header, .hero__inner, .section .container, .site-footer{ position:relative; z-index:3; }
 
-/* ---- Content should always be above lights ---- */
-header, .hero__inner, .section .container, .site-footer{ position:relative; z-index:3 }
-
-/* ================= Header (fixed) ================= */
-.site-header{
-  position:fixed; inset:0 0 auto 0; /* top:0; left:0; right:0 */
-  height:var(--header-h);
-  display:flex; align-items:center; gap:16px;
-  padding:0 16px; box-sizing:border-box;
-  background:rgba(10,10,11,.85);
-  backdrop-filter:blur(10px);
-  border-bottom:1px solid rgba(255,255,255,.06);
-  z-index:50;
-}
-.menu-toggle{ /* visible only on mobile via media query below */ 
-  display:none; margin-left:auto; width:44px; height:44px;
-  border:1px solid rgba(255,59,48,.45);
-  border-radius:10px; background:rgba(225,29,42,.08); color:#f2f2f2; cursor:pointer;
-}
-.menu-toggle__bar{ display:block; width:22px; height:2px; background:#ffb3b3; margin:6px auto }
-
-.nav{ margin-left:auto; display:flex; gap:12px; flex-wrap:wrap }
-.nav a{
-  padding:6px 12px; border-radius:8px; color:#eaeaea; text-decoration:none;
-  transition: transform .12s ease, background .2s ease, box-shadow .2s ease;
-}
-.nav a:hover{
-  background:rgba(225,29,42,.14);
-  box-shadow:0 0 24px rgba(255,59,48,.18) inset;
-  transform:translateY(-1px);
-}
-.nav--accent{ border:1px solid rgba(255,59,48,.45); background:rgba(225,29,42,.08) }
-.nav--accent[aria-disabled="true"]{ opacity:.6; cursor:not-allowed }
-
-/* ---- Offset main content for fixed header ---- */
-main{ padding-top: calc(var(--header-h) + 8px); }
-
-/* ================= Layout / Headings ================= */
+/* ========== Headings / Layout ========== */
 a{ color:var(--scarlet); text-underline-offset:2px }
 a:hover{ color:var(--accent) }
 
@@ -156,7 +94,9 @@ h1{
   font-size:var(--step-4); line-height:1.0; letter-spacing:.02em;
   text-shadow:0 0 18px rgba(255,59,48,.25);
 }
-h2{ font-size:var(--step-2); line-height:1.1; position:relative; padding-left:14px; }
+h2{
+  font-size:var(--step-2); line-height:1.1; position:relative; padding-left:14px;
+}
 h2::before{
   content:""; position:absolute; left:0; top:.18em; bottom:.18em; width:6px;
   background:linear-gradient(180deg, var(--scarlet), var(--scarlet-2));
@@ -165,13 +105,30 @@ h2::before{
 h3{ font-size:var(--step-1) }
 .lead{ font-size:var(--step-1); opacity:.96 }
 
-/* ================= Hero ================= */
-.hero{ position:relative; min-height:66vh; display:grid; place-items:center; text-align:center }
+/* ========== Header / Nav ========== */
+.site-header{
+  position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:16px;
+  padding:10px 16px; background:rgba(10,10,11,.75);
+  backdrop-filter:blur(10px); border-bottom:1px solid rgba(255,255,255,.06);
+}
+.brand{ display:flex; align-items:center; gap:12px }
+.nav{ margin-left:auto; display:flex; gap:12px; flex-wrap:wrap }
+.nav a{
+  padding:6px 12px; border-radius:8px; color:#eaeaea; text-decoration:none;
+  transition: transform .12s ease, background .2s ease, box-shadow .2s ease;
+}
+.nav a:hover{ background:rgba(225,29,42,.14); box-shadow:0 0 24px rgba(255,59,48,.18) inset; transform:translateY(-1px); }
+.nav--accent{ border:1px solid rgba(255,59,48,.45); background:rgba(225,29,42,.08) }
+.nav--accent[aria-disabled="true"]{ opacity:.6; cursor:not-allowed }
+
+/* ========== Hero ========== */
+.hero{ position:relative; min-height:66vh; display:grid; place-items:center; text-align:center; }
+/* 写真＋暗幕。照明は body::after が全体担当 */
 .hero__bg{
   position:absolute; inset:0;
   background:
     linear-gradient(180deg, rgba(10,10,11,.35), rgba(10,10,11,.90)),
-    url("../assets/hero.jpg") center/cover no-repeat; /* fixed は使用しない */
+    url("../assets/hero.jpg") center/cover no-repeat fixed;
   filter:saturate(1.05) contrast(1.02);
 }
 .hero__inner{ position:relative; padding:40px 16px }
@@ -180,20 +137,19 @@ h3{ font-size:var(--step-1) }
   padding:8px 14px; border-radius:12px; background:rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.08);
   line-height:1;
 }
-.hero-logo{ width:64px; height:64px; object-fit:cover; object-position:50% 52%; border-radius:50%; box-shadow:0 0 16px rgba(255,59,48,.35) }
+.hero-logo{ width:64px; height:64px; object-fit:cover; object-position:50% 52%; border-radius:50%; box-shadow:0 0 16px rgba(255,59,48,.35); }
 .hero__brand h1{ margin:0; line-height:1; display:flex; align-items:center; transform:translateY(1px) }
 @media (max-width:480px){ .hero-logo{ width:52px; height:52px } }
 @media (min-width:768px){ .hero-logo{ width:72px; height:72px } }
-
 .cta{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:18px }
 
-/* ---- Stage-light keyframes ---- */
+/* ========== Stage-light keyframes ========== */
 @keyframes sweep1 { 0%{ --a1:-35deg } 100%{ --a1: 35deg } }
 @keyframes sweep2 { 0%{ --a2: 40deg } 100%{ --a2:-40deg } }
 @keyframes sweep3 { 0%{ --a3:-60deg } 100%{ --a3: 60deg } }
 @keyframes sweep4 { 0%{ --a4: 65deg } 100%{ --a4:-65deg } }
 
-/* ================= Buttons ================= */
+/* ========== Buttons ========== */
 .btn{
   display:inline-flex; align-items:center; justify-content:center;
   padding:10px 18px; border-radius:10px;
@@ -206,20 +162,19 @@ h3{ font-size:var(--step-1) }
 .btn--ghost{ background:transparent; color:#f2f2f2; border:1px solid rgba(255,59,48,.5); box-shadow:none }
 .btn--ghost:hover{ background:rgba(225,29,42,.10); box-shadow:0 0 22px rgba(255,59,48,.25) inset }
 
-/* ================= NEWS ================= */
-.news-list{ list-style:none; display:grid; gap:var(--gap-s) }
+/* ========== NEWS ========== */
+.news-list{ list-style:none; padding:0; margin:0; display:grid; gap:var(--gap-s) }
 .news{
   display:grid; gap:6px; padding:14px;
   background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
   border:1px solid rgba(255,255,255,.08); border-radius:12px; box-shadow:var(--shadow);
   clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
 }
-.news__meta{ color:var(--muted); font-size:var(--step--1); display:flex; gap:10px; flex-wrap:wrap }
 
-/* ================= SHOWS ================= */
+/* ========== SHOWS ========== */
 .shows{ display:grid; gap:22px; grid-template-columns:1fr }
 @media (min-width:800px){ .shows{ grid-template-columns:1fr 1fr } }
-.list{ list-style:none; display:grid; gap:var(--gap-s) }
+.list{ list-style:none; padding:0; margin:0; display:grid; gap:var(--gap-s) }
 .show{
   display:grid; gap:10px; padding:14px;
   background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
@@ -230,7 +185,7 @@ h3{ font-size:var(--step-1) }
 .show__where{ color:var(--muted) }
 .show__cta{ display:flex; gap:8px; flex-wrap:wrap }
 
-/* ================= Cards / Grid ================= */
+/* ========== Generic Cards / Grid ========== */
 .grid{ display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)) }
 .card{
   background:var(--panel); border:1px solid rgba(255,255,255,.08);
@@ -243,7 +198,7 @@ h3{ font-size:var(--step-1) }
 .card__meta{ color:var(--muted); font-size:var(--step--1) }
 .tags{ display:none }
 
-/* ================= Member social icons ================= */
+/* ========== Member social icons ========== */
 .social-row{ display:flex; gap:8px; margin-top:10px; align-items:center }
 .social-row .social-icon{
   display:inline-flex; width:22px; height:22px; border-radius:6px;
@@ -254,7 +209,7 @@ h3{ font-size:var(--step-1) }
 .social-row .social-icon img{ width:14px; height:14px; object-fit:contain; filter:drop-shadow(0 0 4px rgba(255,59,48,.2)) }
 .social-row .social-icon:hover{ transform:translateY(-1px); background:rgba(225,29,42,.10) }
 
-/* ================= Members Carousel ================= */
+/* ========== Members Carousel ========== */
 #members-carousel{ position:relative; }
 #members-carousel .carousel__scroller{
   display:grid; grid-auto-flow:column; gap:16px;
@@ -264,10 +219,16 @@ h3{ font-size:var(--step-1) }
   padding:6px 0 12px; scrollbar-width:none;
 }
 #members-carousel .carousel__scroller::-webkit-scrollbar{ display:none; }
-#members-carousel .carousel__scroller > .card{ scroll-snap-align:start; scroll-snap-stop:always }
+#members-carousel .carousel__scroller > .card{
+  scroll-snap-align:start;
+  scroll-snap-stop:always;
+}
+/* 可視枚数：SP=1 / TB=2 / PC=3 */
 #members-carousel .carousel__scroller{ grid-auto-columns:90% }
 @media (min-width:768px){  #members-carousel .carousel__scroller{ grid-auto-columns:50% } }
 @media (min-width:1024px){ #members-carousel .carousel__scroller{ grid-auto-columns:calc(100%/3) } }
+
+/* Carousel buttons */
 #members-carousel .carousel__btn{
   position:absolute; top:50%; transform:translateY(-50%);
   width:42px; height:42px; border-radius:999px;
@@ -279,49 +240,58 @@ h3{ font-size:var(--step-1) }
 #members-carousel .carousel__btn--prev{ left:6px }
 #members-carousel .carousel__btn--next{ right:6px }
 @media (max-width:767.98px){ #members-carousel .carousel__btn{ display:none } }
+
+/* Carousel dots */
 #members-dots{ display:flex; justify-content:center; gap:8px; margin-top:10px; position:relative; z-index:4 }
-#members-dots > button{ width:8px; height:8px; border-radius:50%; border:0; background:rgba(255,255,255,.28) }
+#members-dots > button{ width:8px; height:8px; border-radius:50%; border:0; background:rgba(255,255,255,.28); }
 #members-dots > button.is-active{ background:var(--scarlet) }
 
-/* ================= VIDEO ================= */
+/* ========== VIDEO ========== */
 .media-yt-grid{ display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)) }
 .media-yt-grid iframe{
   width:100%; aspect-ratio:16/9; border:0; border-radius:12px;
   box-shadow:0 10px 26px rgba(255,59,48,.15), 0 2px 0 rgba(255,59,48,.35) inset;
 }
-.embed-yt{ position:relative; width:100%; aspect-ratio:16/9; background:#000; border-radius:12px; overflow:hidden; box-shadow:0 8px 28px rgba(0,0,0,.35) }
+.embed-yt{ position:relative; width:100%; aspect-ratio:16/9; background:#000; border-radius:12px; overflow:hidden; box-shadow:0 8px 28px rgba(0,0,0,.35); }
 .embed-yt iframe{ position:absolute; inset:0; width:100%; height:100%; border:0 }
 
-/* ================= Footer & Social ================= */
+/* ========== Footer & Social ========== */
 .social{ display:grid; gap:10px; grid-template-columns:24px 1fr; align-items:center; margin-top:8px }
 .icon{ width:20px; height:20px; fill:#ff6b6b }
 .site-footer{ padding:30px 16px; text-align:center; color:var(--muted); border-top:1px solid var(--line) }
 .more-note{ color:var(--muted); font-size:var(--step--1); margin-top:8px }
 
-/* ================= Drawer / Responsive ================= */
+/* ========== Drawer / Responsive ========== */
+.site-header{ padding-top:calc(10px + env(safe-area-inset-top,0px)); padding-bottom:10px }
+.site-footer{ padding-bottom:calc(30px + env(safe-area-inset-bottom,0px)) }
+.menu-toggle{
+  display:none; margin-left:auto; width:44px; height:44px; border:1px solid rgba(255,59,48,.45);
+  border-radius:10px; background:rgba(225,29,42,.08); color:#f2f2f2; cursor:pointer;
+}
+.menu-toggle__bar{ display:block; width:22px; height:2px; background:#ffb3b3; margin:6px auto }
+
 @media (max-width:767.98px){
   body:not(.nav-open) .nav{ visibility:hidden; pointer-events:none }
+  body.nav-open .nav{ visibility:visible; pointer-events:auto }
   .menu-toggle{ display:inline-flex; align-items:center; justify-content:center }
-
   .nav{
-    position:fixed; top:var(--header-h); right:0;
-    width:min(80vw,340px); height: calc(100dvh - var(--header-h));
-    background: rgba(17,17,17,.98); border-left:1px solid rgba(255,255,255,.08);
+    position:fixed; top:calc(56px + env(safe-area-inset-top,0px)); right:0;
+    width:min(80vw,340px); height:calc(100dvh - (56px + env(safe-area-inset-top,0px)));
+    background:rgba(17,17,17,.98); border-left:1px solid rgba(255,255,255,.08);
     transform:translateX(100%); transition:transform .2s ease; padding:16px; display:grid; gap:8px; z-index:60;
   }
   body.nav-open .nav{ transform:translateX(0) }
   .nav a{ padding:12px 10px; font-size:clamp(16px, 1rem + 0.2vw, 18px); border-radius:10px; background:transparent; border:1px solid rgba(255,255,255,.10) }
   .nav a:hover{ background:rgba(225,29,42,.10) }
-
   .nav-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.45); backdrop-filter:blur(2px); z-index:55; display:none }
   body.nav-open .nav-backdrop{ display:block }
-
   .hero__bg{ background-attachment:scroll }
   .grid{ grid-template-columns:1fr }
   .media-yt-grid{ grid-template-columns:1fr }
   .shows{ grid-template-columns:1fr }
   .card__title{ display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
 }
+
 @media (min-width:768px) and (max-width:1023.98px){
   .grid{ grid-template-columns:repeat(2, 1fr) }
   .media-yt-grid{ grid-template-columns:repeat(2, 1fr) }
@@ -335,14 +305,12 @@ h3{ font-size:var(--step-1) }
   .grid{ grid-template-columns:repeat(4, minmax(0,1fr)) }
 }
 
-/* ================= A11y / Robustness ================= */
+/* ========== A11y / Robustness ========== */
 a.btn, .btn, .nav a, .show .btn, .menu-toggle{ min-height:44px }
 .card__meta, .about, .news, .show{ overflow-wrap:anywhere; word-break:break-word }
-@media (prefers-reduced-motion: reduce){
-  body::after{ animation:none; opacity:.25 }
-}
+@media (prefers-reduced-motion:reduce){ body::after{ animation:none; opacity:.25 } }
 
-/* ================= “3件表示＋スクロール” 共通化 ================= */
+/* ========== “3件表示＋スクロール” 共通化 ========== */
 #news-list{ --row-h:var(--news-h); }
 #shows-upcoming, #shows-past{ --row-h:var(--show-h); }
 #news-list, #shows-upcoming, #shows-past{
@@ -350,39 +318,67 @@ a.btn, .btn, .nav a, .show .btn, .menu-toggle{ min-height:44px }
   max-height:calc(var(--row-h) * 3 + var(--gap-s) * 2);
   padding-right:6px; scrollbar-gutter:stable;
 }
-#news-list > li.news,
-#shows-upcoming > li.show,
-#shows-past > li.show{
-  min-height:var(--row-h);
-  display:grid; align-content:start;
+#news-list > li.news, #shows-upcoming > li.show, #shows-past > li.show{
+  min-height:var(--row-h); display:grid; align-content:start;
 }
-#news-list > li.news h3,
-#news-list > li.news p{
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
-}
-#news-list::-webkit-scrollbar,
-#shows-upcoming::-webkit-scrollbar,
-#shows-past::-webkit-scrollbar{ width:8px; }
-#news-list::-webkit-scrollbar-thumb,
-#shows-upcoming::-webkit-scrollbar-thumb,
-#shows-past::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.25); border-radius:999px; }
-#news-list::-webkit-scrollbar-track,
-#shows-upcoming::-webkit-scrollbar-track,
-#shows-past::-webkit-scrollbar-track{ background:rgba(255,255,255,.06); border-radius:999px; }
+#news-list::-webkit-scrollbar, #shows-upcoming::-webkit-scrollbar, #shows-past::-webkit-scrollbar{ width:8px; }
+#news-list::-webkit-scrollbar-thumb, #shows-upcoming::-webkit-scrollbar-thumb, #shows-past::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.25); border-radius:999px; }
+#news-list::-webkit-scrollbar-track, #shows-upcoming::-webkit-scrollbar-track, #shows-past::-webkit-scrollbar-track{ background:rgba(255,255,255,.06); border-radius:999px; }
 #news-list:has(li:nth-child(4)){ height:calc(var(--row-h) * 3 + var(--gap-s) * 2); max-height:none; }
 
-/* === Mobile: NEWS 見出しを少しだけ小さく === */
-@media (max-width: 350px){
-  #news h2{
-    /* 既定の --step-2 より一回り小さいスケール */
-    font-size: clamp(22px, 1rem + 0.2vw, 28px);
-    /* お好みで字間を微調整（任意） */
-    letter-spacing: .01em;
+/* ===== NEWS / SHOWS の title を統一 ===== */
+.item-title,
+#news-list li.news h3,
+#news-list li.news .news__title,
+#shows-upcoming li.show h3,
+#shows-past li.show h3,
+#shows-upcoming li.show .show__title,
+#shows-past li.show .show__title{
+  font-size:var(--content-title-size) !important;
+  line-height:1.25;
+  margin:0 0 .25em;
+  max-width:100%;
+}
+/* 長文タイトルのはみ出し防止 */
+#news-list li.news > *, #shows-upcoming li.show > *, #shows-past li.show > *{
+  min-width:0; overflow-wrap:anywhere; word-break:break-word; white-space:normal;
+}
+
+/* ===============================
+   Unify NEWS / SHOWS item titles
+   （style.css の一番最後に追加）
+   =============================== */
+
+/* NEWS/SHOWS ともにタイトル用クラスを統一している前提：
+   - NEWS:  <h3 class="news__title item-title">...</h3>
+   - SHOWS: <h3 class="show__title item-title">...</h3>
+*/
+.item-title,
+.item-title a{
+  font-size: var(--step-1) !important;  /* 完全同一サイズ */
+  line-height: 1.25;
+  font-weight: 900;
+  letter-spacing: .02em;
+  margin: 0 0 .25em;
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
+/* 既存の個別指定が残っていても潰す（サイズは item-title に一本化） */
+#news-list > li.news h3,
+#news-list > li.news .news__title,
+#shows-upcoming .show__title,
+#shows-past .show__title{
+  font-size: inherit !important;
+}
+
+/* モバイルでも縮めない（以前の縮小ルールを明示的に打ち消し） */
+@media (max-width: 480px){
+  .item-title,
+  .item-title a{
+    font-size: var(--step-1) !important;
   }
 }
-
-@media (max-width: 767.98px){
-  body:not(.nav-open) .nav{ visibility:hidden; pointer-events:none; }
-  body.nav-open .nav{ visibility:visible; pointer-events:auto; transform: translateX(0); }
-}
-
