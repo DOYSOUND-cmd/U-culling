@@ -371,3 +371,12 @@ a.btn, .btn, .nav a, .show .btn, .menu-toggle{ min-height:44px }
 #shows-past::-webkit-scrollbar-track{ background:rgba(255,255,255,.06); border-radius:999px; }
 #news-list:has(li:nth-child(4)){ height:calc(var(--row-h) * 3 + var(--gap-s) * 2); max-height:none; }
 
+/* === Mobile: NEWS 見出しを少しだけ小さく === */
+@media (max-width: 380px){
+  #news h2{
+    /* 既定の --step-2 より一回り小さいスケール */
+    font-size: clamp(22px, 1.35rem + 0.6vw, 28px);
+    /* お好みで字間を微調整（任意） */
+    letter-spacing: .01em;
+  }
+}
