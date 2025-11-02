@@ -4,23 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>U-culling | VRChat発ロックバンド</title>
-  <meta name="description" content="VRChat発ロックバンド U-culling 公式サイト。NEWS / LIVE / DISCOGRAPHY / VIDEO / PROFILE を掲載。">
+  <meta name="description" content="VRChat発ロックバンド U-culling 公式サイト。NEWS / LIVE / VIDEO / PROFILE を掲載。">
   <meta property="og:type" content="website">
   <meta property="og:title" content="U-culling | VRChat発ロックバンド">
-  <meta property="og:description" content="VRChat発ロックバンド U-culling 公式サイト。NEWS / LIVE / DISCOGRAPHY / VIDEO / PROFILE。">
+  <meta property="og:description" content="VRChat発ロックバンド U-culling 公式サイト。NEWS / LIVE / VIDEO / PROFILE。">
   <meta property="og:image" content="assets/hero.jpg">
   <meta property="og:site_name" content="U-culling">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="assets/logo.jpg" type="image/jpeg">
-  <link rel="preload" as="image" href="assets/hero.jpg">
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+  <!-- フォント：英字=Inter / 日本語=Noto Sans JP -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="theme--scarlet">
 <header class="site-header">
-  <a class="brand" href="#top" aria-label="U-culling Home">
-    <img src="assets/logo.jpg" alt="U-culling" width="132" height="32">
-  </a>
 
   <button class="menu-toggle" aria-controls="global-nav" aria-expanded="false" aria-label="メニューを開く">
     <span class="menu-toggle__bar"></span>
@@ -31,11 +28,9 @@
   <nav id="global-nav" class="nav" aria-label="メイン">
     <a href="#news">NEWS</a>
     <a href="#live">LIVE</a>
-    <a href="#disc">DISCOGRAPHY</a>
-    <a href="#video">VIDEO</a>
     <a href="#profile">PROFILE</a>
-    <a class="nav--accent" href="#" aria-disabled="true">FANCLUB</a>
-    <a class="nav--accent" href="#" aria-disabled="true">STORE</a>
+    <a href="#video">VIDEO</a>
+    <a href="#contact">CONTACT</a>
   </nav>
   <div class="nav-backdrop" hidden></div>
 </header>
@@ -48,11 +43,6 @@
         <img class="hero-logo" src="assets/logo.jpg" alt="U-culling logo" width="72" height="72">
         <h1>U-culling</h1>
       </div>
-      <p class="lead">VRChat発ロックバンド。仮想と現実を横断するステージ。</p>
-      <div class="cta">
-        <a class="btn" href="#live">次の公演</a>
-        <a class="btn btn--ghost" href="#video">映像を見る</a>
-      </div>
     </div>
   </section>
 
@@ -60,7 +50,6 @@
     <div class="container">
       <h2>NEWS</h2>
       <ul id="news-list" class="news-list"></ul>
-      <p class="more-note">※最新3件を表示。詳細は各SNS/アーカイブへ。</p>
     </div>
   </section>
 
@@ -80,70 +69,49 @@
     </div>
   </section>
 
-  <section id="disc" class="section">
-    <div class="container">
-      <h2>DISCOGRAPHY</h2>
-      <div class="disc-filter">
-        <button data-type="ALL" class="is-active">ALL</button>
-        <button data-type="SINGLE">SINGLE</button>
-        <button data-type="EP">EP</button>
-        <button data-type="ALBUM">ALBUM</button>
-        <button data-type="LIVE">LIVE</button>
-      </div>
-      <div id="songs-list" class="grid"></div>
-    </div>
-  </section>
-
-  <section id="video" class="section section--alt">
-    <div class="container">
-      <h2>VIDEO</h2>
-      <div id="media-youtube" class="media-yt-grid"></div>
-    </div>
-  </section>
-
   <section id="profile" class="section">
     <div class="container">
       <h2>PROFILE</h2>
-      <p class="about">
-        U-cullingはVRChatライブハウス文化から生まれたロックバンド。<br>
-        重心の低いリフ、二本ギターの対旋律、密度の違うセクションのダイナミクスが特徴。<br>
-        Born in VRChat live-house culture. Heavy riffs, dual-guitar counter-melodies, and dynamic contrasts.
-      </p>
-      <div id="members-list" class="grid"></div>
+
+      <!-- Members: カルーセル -->
+      <div id="members-carousel" class="carousel">
+        <button class="carousel__btn carousel__btn--prev" aria-label="前へ" type="button">‹</button>
+
+        <div id="members-list" class="carousel__scroller" aria-live="polite"></div>
+
+        <button class="carousel__btn carousel__btn--next" aria-label="次へ" type="button">›</button>
+        <div id="members-dots" class="carousel__dots" aria-label="スライド位置"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VIDEO：YouTube 埋め込み（1本） -->
+  <section id="video" class="section section--alt">
+    <div class="container">
+      <h2>VIDEO</h2>
+      <div class="embed-yt">
+        <iframe
+          src="https://www.youtube.com/embed/J3hYZwu6uFw?si=UOh9B6WqDvm0nUvI"
+          title="YouTube video player"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allowfullscreen
+          loading="lazy"></iframe>
+      </div>
     </div>
   </section>
 
   <section id="contact" class="section section--alt">
     <div class="container">
       <h2>CONTACT</h2>
-      <p>出演依頼・取材はメールまたはXのDMへ。</p>
-      <p><a class="btn" href="mailto:contact@u-culling.example">contact@u-culling.example</a></p>
+      <p>出演依頼はXのDMへ。</p>
+      <p><a class="btn" href="https://x.com/UcullingHQ"><svg class="icon"><use href="assets/icons.svg#x" /></svg>(公式) U-culling</a></p>
       <div class="social">
-        <svg class="icon"><use href="assets/icons.svg#x" /></svg>
-        <a href="https://x.com/your_official" target="_blank" rel="noopener">X（公式）</a>
         <svg class="icon"><use href="assets/icons.svg#youtube" /></svg>
-        <a href="https://www.youtube.com/@your_channel" target="_blank" rel="noopener">YouTube</a>
+        <a href="https://youtube.com/@u-culling?si=M4kfOZ-qy24ndwxL" target="_blank" rel="noopener">YouTube</a>
         <svg class="icon"><use href="assets/icons.svg#vrchat" /></svg>
-        <a href="https://hello.vrchat.com/" target="_blank" rel="noopener">VRChat</a>
-      </div>
-    </div>
-  </section>
-
-  <section id="social" class="section">
-    <div class="container">
-      <h2>SOCIAL / FEED</h2>
-      <div class="feed-grid">
-        <div class="feed-col">
-          <h3>Official X Timeline</h3>
-          <p class="more-note">公式ウィジェット。キー不要／即表示。</p>
-          <div id="xtl" class="xtl-skeleton" data-screen="UcullingHQ" data-theme="dark" data-limit="5"></div>
-        </div>
-        <div class="feed-col">
-          <h3>Live Feed (API)</h3>
-          <p class="more-note">サーバーレスAPI経由でほぼリアルタイム取得（60秒間隔）。</p>
-          <div id="x-feed" class="x-feed"></div>
-          <pre class="more-note small">※ FEED_ENDPOINT を設定すると自動で表示されます。</pre>
-        </div>
+        <a href="https://vrchat.com/home/group/grp_91b3aba2-1c54-496d-87ec-732dc8e9d9ec" target="_blank" rel="noopener">VRChat</a>
       </div>
     </div>
   </section>
@@ -157,32 +125,14 @@
 <script type="module" src="js/util.js"></script>
 <script type="module" src="js/main.js"></script>
 <script type="module" src="js/nav.js"></script>
+
 <script>
-  /* ===== フィード切替設定 =====
-     開発中（Live Server）は 429 を避けるため USE_WIDGET:false を推奨。
-     本番で公式タイムラインを使うなら true に。
-     FEED_ENDPOINT は Cloudflare/Vercel などにデプロイしたAPIのURLを設定。 */
+  /* X フィード設定（必要に応じて変更） */
   window.UC_FEED = {
-    USE_WIDGET: false,                         // ← dev: false / prod: true
-    FEED_ENDPOINT: 'data/x-feed-dev.json' // ← あなたのエンドポイントに変更
+    USE_WIDGET: false,
+    FEED_ENDPOINT: 'data/x-feed-dev.json'
   };
 </script>
 <script type="module" src="js/feed-router.js"></script>
-
-
-
-<script type="module" src="js/feed-router.js"></script>
-
-
-<script>
-  window.UC_FEED = {
-    USE_WIDGET: false,                         // ← そのままでもOK
-    ENABLE_API_FEED: true,
-    FEED_ENDPOINT: '/api/x-feed?user=UcullingHQ'  // ← Cloudflare/VercelにデプロイしたURL
-  };
-</script>
-
-<script type="module" src="js/feed-router.js"></script>
-
 </body>
 </html>

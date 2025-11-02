@@ -1,116 +1,630 @@
-import { nowJST, esc, buildIcs, download } from "./util.js";
-const $=(s,r=document)=>r.querySelector(s); const $$=(s,r=document)=>[...r.querySelectorAll(s)];
-const state={ news:[], shows:[], songs:[], members:[] };
-async function loadJSON(p){ const r=await fetch(p,{cache:"no-store"}); if(!r.ok) throw new Error(p); return r.json(); }
+/* =========================================================
+   U-culling — main.js (NEWS/LIVE/PROFILE + Carousel/Autoplay)
+   - 依存: index.html の #news-list / #shows-upcoming / #shows-past /
+           #members-carousel(#members-list, prev/next, dots)
+   - データ: data/news.json, data/shows.json, data/members.json
+   - 注意: songs.json は読み込みません（要求により除外）
+   ========================================================= */
 
-function renderNews(){
-  const ul=$("#news-list");
-  const items=state.news.slice(0,3);
-  ul.innerHTML = items.map(n=>`<li class="news">
-    <div class="news__meta"><span>${new Date(n.date).toLocaleDateString("ja-JP",{timeZone:"Asia/Tokyo"})}</span><span>${esc(n.category)}</span></div>
-    <div><strong>${esc(n.title)}</strong></div>
-    ${n.body?`<div>${esc(n.body)}</div>`:""} ${n.url?`<div><a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.urlLabel||"詳細")}</a></div>`:""}
-  </li>`).join("");
+/* ------------------------------
+ * ヘルパ
+ * ------------------------------ */
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+async function loadJSON(url) {
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`${url} -> ${res.status}`);
+    return await res.json();
+  } catch (e) {
+    console.warn("[loadJSON]", e);
+    return null;
+  }
 }
 
-function renderShows(){
-  const now=nowJST(), up=[], past=[];
-  for(const ev of state.shows){ (new Date(ev.start)>=now?up:past).push(ev); }
-  up.sort((a,b)=>new Date(a.start)-new Date(b.start));
-  past.sort((a,b)=>new Date(b.start)-new Date(a.start));
-  const li=(ev)=>`<li class="show">
-    <div class="show__line">
-      <strong>${esc(ev.title)}</strong>
-      <div class="show__cta">
-        ${ev.ticket?`<a class="btn" href="${esc(ev.ticket)}" target="_blank" rel="noopener">Ticket</a>`:""}
-        <button class="btn btn--ghost" data-ics='${esc(JSON.stringify({title:ev.title,start:ev.start,end:ev.end,place:ev.place,url:ev.url}))}'>Calendar</button>
-      </div>
-    </div>
-    <div class="show__line">
-      <span>${new Date(ev.start).toLocaleString("ja-JP",{timeZone:"Asia/Tokyo",dateStyle:"medium",timeStyle:"short"})}</span>
-      <span class="show__where">${esc(ev.place||"")}</span>
-    </div>
-    ${ev.note?`<div>${esc(ev.note)}</div>`:""} ${ev.url?`<div><a href="${esc(ev.url)}" target="_blank" rel="noopener">${esc(ev.url)}</a></div>`:""}
-  </li>`;
-  $("#shows-upcoming").innerHTML=up.map(li).join("")||`<li class="show">予定は準備中です。</li>`;
-  $("#shows-past").innerHTML=past.map(li).join("")||`<li class="show">過去公演は後日掲載します。</li>`;
-  $$("[data-ics]").forEach(b=>b.addEventListener("click",()=>{
-    const ev=JSON.parse(b.getAttribute("data-ics"));
-    download(`U-culling_${ev.title.replace(/\s+/g,"_")}.ics`, buildIcs(ev));
-  }));
+function fmtDate(input) {
+  // 受け取り: "2025-11-02" / "2025/11/02" / ISO 等
+  if (!input) return "";
+  // スラッシュ → ハイフン
+  const s = String(input).replace(/\//g, "-");
+  const d = new Date(s);
+  if (isNaN(d)) return String(input);
+  // YYYY.MM.DD
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}.${m}.${day}`;
 }
 
-function yt(id){ return `<iframe src="https://www.youtube.com/embed/${id}" title="YouTube" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>`; }
+function todayYMD() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
-function renderSongs(){
-  const wrap=$("#songs-list");
-  const tpl=(s)=>`<article class="card" itemscope itemtype="https://schema.org/MusicRecording">
-    <img src="${esc(s.cover||"assets/hero.jpg")}" alt="${esc(s.title)} cover" loading="lazy">
-    <div class="card__body">
-      <h3 class="card__title" itemprop="name">${esc(s.title)}</h3>
-      <div class="card__meta"><span>${esc(s.type||"")}</span>${s.year?` · <span>${s.year}</span>`:""}${s.genres?.length?` · <span>${esc(s.genres.join(", "))}</span>`:""}</div>
-      ${s.desc?`<p>${esc(s.desc)}</p>`:""}
-      <div class="tags">${(s.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>
-      ${s.audio?`<audio controls preload="none" style="width:100%;margin-top:8px"><source src="${esc(s.audio)}" type="audio/mpeg"></audio>`:""}
-      ${s.videoId?`<div class="media-yt">${yt(s.videoId)}</div>`:""}
-    </div>
-  </article>`;
-  wrap.innerHTML = state.songs.map(tpl).join("");
+/* ------------------------------
+ * NEWS
+ * - 4件目以降も読み込む（CSS側で3件固定＋スクロール）
+ * ------------------------------ */
+async function renderNews() {
+  const list = $("#news-list");
+  if (!list) return;
 
-  document.querySelectorAll(".disc-filter button").forEach(btn=>{
-    btn.addEventListener("click",()=>{
-      document.querySelectorAll(".disc-filter button").forEach(b=>b.classList.remove("is-active"));
-      btn.classList.add("is-active");
-      const type=btn.getAttribute("data-type");
-      const list = type==="ALL"? state.songs : state.songs.filter(s=>s.type===type);
-      wrap.innerHTML = list.map(tpl).join("");
-    });
+  const data = await loadJSON("data/news.json");
+  if (!data) return;
+
+  // 柔軟な入力を許容: {news:[...]} も [... ] もOK
+  const items = Array.isArray(data) ? data : Array.isArray(data.news) ? data.news : [];
+
+  // 新しい日付順にソート（可能なら）
+  items.sort((a, b) => {
+    const da = new Date(a.date || a.published_at || 0).getTime();
+    const db = new Date(b.date || b.published_at || 0).getTime();
+    return isNaN(db - da) ? 0 : db - da;
   });
 
-  const m=$("#media-youtube");
-  m.innerHTML = state.songs.filter(s=>s.videoId).slice(0,6).map(v=>yt(v.videoId)).join("");
+  const frag = document.createDocumentFragment();
+  for (const n of items) {
+    const li = document.createElement("li");
+    li.className = "news";
+
+    const title = n.title || n.text || "(no title)";
+    const date = fmtDate(n.date || n.published_at);
+    const tag = n.tag || n.category || "";
+
+    const h3 = document.createElement("h3");
+    if (n.url) {
+      const a = document.createElement("a");
+      a.href = n.url;
+      a.target = "_blank";
+      a.rel = "noopener";
+      a.textContent = title;
+      h3.appendChild(a);
+    } else {
+      h3.textContent = title;
+    }
+
+    const meta = document.createElement("div");
+    meta.className = "news__meta";
+    if (date) {
+      const d = document.createElement("span");
+      d.textContent = date;
+      meta.appendChild(d);
+    }
+    if (tag) {
+      const t = document.createElement("span");
+      t.textContent = tag;
+      meta.appendChild(t);
+    }
+
+    if (n.desc) {
+      const p = document.createElement("p");
+      p.textContent = n.desc;
+      li.append(h3, meta, p);
+    } else {
+      li.append(h3, meta);
+    }
+    frag.appendChild(li);
+  }
+  list.innerHTML = "";
+  list.appendChild(frag);
 }
 
-function renderMembers(){
-  const wrap=$("#members-list");
-  const ICONS = {
-    "X": "assets/X.png",
-    "VRChat": "assets/VRChat.png",
-    "Github": "assets/github-mark-white.png",
-    "GitHub": "assets/github-mark-white.png"
+/* ------------------------------
+ * SHOWS (Upcoming / Past)
+ * - shows.json 形式は 2パターン対応:
+ *   1) { upcoming:[...], past:[...] }
+ *   2) { shows:[...] } または配列 [...] → 日付で今/過去を振分け
+ * ------------------------------ */
+function isFutureOrToday(dateStr) {
+  // YYYY-MM-DD 比較（0:00基準。時刻がある場合はそのままDate判定）
+  if (!dateStr) return false;
+  const s = String(dateStr).replace(/\//g, "-");
+  const d = new Date(s);
+  if (isNaN(d)) return false;
+  const today = new Date(todayYMD());
+  // "本日中" をUpcomingに含めたいので >=
+  return d >= today;
+}
+
+function makeShowLi(show) {
+  const li = document.createElement("li");
+  li.className = "show";
+
+  const line = document.createElement("div");
+  line.className = "show__line";
+
+  const title = document.createElement("strong");
+  title.textContent = show.title || "(untitled)";
+
+  const dateEl = document.createElement("span");
+  dateEl.textContent = fmtDate(show.date);
+
+  line.append(title, dateEl);
+
+  const where = document.createElement("div");
+  where.className = "show__where";
+  const venue = show.venue ? ` @ ${show.venue}` : "";
+  const city = show.city ? ` (${show.city})` : "";
+  where.textContent = (show.open ? `OPEN ${show.open} ` : "") + (show.start ? `/ START ${show.start}` : "") + venue + city;
+
+  const cta = document.createElement("div");
+  cta.className = "show__cta";
+  if (show.ticket) {
+    const a = document.createElement("a");
+    a.className = "btn btn--ghost";
+    a.href = show.ticket;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = "TICKET";
+    cta.appendChild(a);
+  }
+  if (show.more) {
+    const a = document.createElement("a");
+    a.className = "btn btn--ghost";
+    a.href = show.more;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = "MORE";
+    cta.appendChild(a);
+  }
+
+  li.append(line, where, cta);
+  return li;
+}
+
+async function renderShows() {
+  const upEl = $("#shows-upcoming");
+  const pastEl = $("#shows-past");
+  if (!upEl || !pastEl) return;
+
+  const data = await loadJSON("data/shows.json");
+  if (!data) return;
+
+  let upcoming = [];
+  let past = [];
+
+  if (Array.isArray(data)) {
+    // 単純配列
+    for (const s of data) (isFutureOrToday(s.date) ? upcoming : past).push(s);
+  } else if (Array.isArray(data.shows)) {
+    for (const s of data.shows) (isFutureOrToday(s.date) ? upcoming : past).push(s);
+  } else {
+    // { upcoming:[], past:[] } 形式
+    upcoming = Array.isArray(data.upcoming) ? data.upcoming.slice() : [];
+    past = Array.isArray(data.past) ? data.past.slice() : [];
+  }
+
+  // ソート: upcoming=日付昇順 / past=日付降順
+  const toTime = (s) => new Date(String(s.date || "").replace(/\//g, "-")).getTime();
+  upcoming.sort((a, b) => toTime(a) - toTime(b));
+  past.sort((a, b) => toTime(b) - toTime(a));
+
+  // 描画
+  const upFrag = document.createDocumentFragment();
+  upcoming.forEach((s) => upFrag.appendChild(makeShowLi(s)));
+  upEl.innerHTML = "";
+  upEl.appendChild(upFrag);
+
+  const pastFrag = document.createDocumentFragment();
+  past.forEach((s) => pastFrag.appendChild(makeShowLi(s)));
+  pastEl.innerHTML = "";
+  pastEl.appendChild(pastFrag);
+}
+
+/* ------------------------------
+ * MEMBERS（カルーセル）
+ * - PC: 3-up / Tablet: 2-up / Mobile: 1-up
+ * - 自動再生 / ループ / ボタン / ドット
+ * - SNSアイコン: 実在PNGに合わせたマップ
+ * ------------------------------ */
+
+// 実ファイルに合わせたアイコンマップ
+const ICONS_MAP = {
+  x: "assets/X.png",
+  vrchat: "assets/VRChat.png",
+  github: "assets/github-mark-white.png",
+  // 追加したい場合:
+  // youtube: 'assets/icons.svg#youtube', // ← SVGスプライトを使う例
+};
+
+function getIconSpec(key) {
+  const k = String(key || "").toLowerCase();
+  const val = ICONS_MAP[k];
+  if (!val) return { type: "img", src: ICONS_MAP["x"] }; // 未対応は X にフォールバック
+  return val.includes("#")
+    ? { type: "sprite", href: val }
+    : { type: "img", src: val };
+}
+
+function makeIcon(key, url) {
+  const a = document.createElement("a");
+  a.href = url;
+  a.target = "_blank";
+  a.rel = "noopener";
+  a.className = "social-icon";
+
+  const spec = getIconSpec(key);
+  if (spec.type === "img") {
+    const img = document.createElement("img");
+    img.alt = key;
+    img.loading = "lazy";
+    img.src = spec.src;
+    img.width = 14; // CSSが無い環境でも最低限揃うよう幅高さ付与
+    img.height = 14;
+    img.addEventListener(
+      "error",
+      () => {
+        img.src = ICONS_MAP["x"];
+      },
+      { once: true }
+    );
+    a.appendChild(img);
+  } else {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("width", "14");
+    svg.setAttribute("height", "14");
+    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    use.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", spec.href);
+    use.setAttribute("href", spec.href);
+    svg.appendChild(use);
+    a.appendChild(svg);
+  }
+  return a;
+}
+
+function normalizeMembers(arr) {
+  return (arr || []).map((m) => {
+    const social = {};
+    // JSON 側のキーが "X", "VRChat", "Github" などバラつく想定
+    Object.entries(m.social || {}).forEach(([k, v]) => {
+      if (!v) return;
+      const key = String(k).toLowerCase();
+      if (key.includes("vrchat")) social.vrchat = v;
+      else if (key === "x" || key.includes("twitter")) social.x = v;
+      else if (key.includes("git")) social.github = v;
+      else social[key] = v; // その他はそのまま
+    });
+    return {
+      name: m.name || "",
+      role: m.role || "",
+      image: m.image || "",
+      social,
+    };
+  });
+}
+
+function makeMemberCard(m) {
+  const card = document.createElement("article");
+  card.className = "card";
+
+  if (m.image) {
+    const img = document.createElement("img");
+    img.className = "card__img";
+    img.loading = "lazy";
+    img.alt = `${m.name} — ${m.role}`;
+    img.src = m.image; // 例: assets/member_vocal.jpg
+    card.appendChild(img);
+  }
+
+  const body = document.createElement("div");
+  body.className = "card__body";
+
+  const title = document.createElement("div");
+  title.className = "card__title";
+  title.textContent = m.name;
+
+  const meta = document.createElement("div");
+  meta.className = "card__meta";
+  meta.textContent = m.role;
+
+  const socialRow = document.createElement("div");
+  socialRow.className = "social-row";
+  Object.entries(m.social || {}).forEach(([k, url]) => {
+    socialRow.appendChild(makeIcon(k, url));
+  });
+
+  body.append(title, meta, socialRow);
+  card.appendChild(body);
+  return card;
+}
+
+/* ---- カルーセル本体（クローン方式でシームレス） ---- */
+function setupMembersCarousel(members) {
+  const root = $("#members-carousel");
+  const scroller = $("#members-list", root);
+  const prevBtn = $(".carousel__btn--prev", root);
+  const nextBtn = $(".carousel__btn--next", root);
+  const dotsWrap = $("#members-dots", root);
+  if (!root || !scroller) return;
+
+  // 初期描画
+  scroller.innerHTML = "";
+  const normalized = normalizeMembers(members);
+  const originalsFrag = document.createDocumentFragment();
+  normalized.forEach((m) => originalsFrag.appendChild(makeMemberCard(m)));
+  scroller.appendChild(originalsFrag);
+
+  // 状態
+  let perView = 1;
+  let gapPx = 16;
+  let pageSize = 0; // カード1枚ぶんのスクロール距離 (cardWidth + gap)
+  let total = scroller.children.length; // 実データ枚数
+  let current = 0; // scroller.children のインデックス（クローン含む）
+  let timer = null;
+  let animating = false;
+  let justJumped = false; // ラップ直後の二重進行防止
+
+  // ドット
+  function renderDots() {
+    dotsWrap.innerHTML = "";
+    for (let i = 0; i < total; i++) {
+      const b = document.createElement("button");
+      b.type = "button";
+      if (i === getRealIndex()) b.classList.add("is-active");
+      b.addEventListener("click", () => goToReal(i));
+      dotsWrap.appendChild(b);
+    }
+  }
+
+  function getComputedGap() {
+    const cs = getComputedStyle(scroller);
+    // grid-gap は '16px' のように返る
+    const g = parseFloat(cs.columnGap || cs.gap || "16");
+    return Number.isFinite(g) ? g : 16;
+  }
+
+  function getPerView() {
+    // 可視幅 / 1枚の幅（grid-auto-columns）
+    const first = scroller.children[0];
+    if (!first) return 1;
+    const cardW = first.getBoundingClientRect().width;
+    const wrapW = scroller.getBoundingClientRect().width;
+    if (cardW <= 1) return 1;
+    const n = Math.round(wrapW / cardW);
+    return Math.max(1, Math.min(3, n)); // Mobile=1 / Tablet=2 / PC=3
+  }
+
+  function measure() {
+    gapPx = getComputedGap();
+    perView = getPerView();
+    const first = scroller.children[0];
+    const cardW = first ? first.getBoundingClientRect().width : 0;
+    pageSize = Math.max(0, cardW + gapPx);
+  }
+
+  function clearClones() {
+    // data-clone 属性があるノードを削除
+    $$(".card[data-clone]", scroller).forEach((el) => el.remove());
+  }
+
+  function applyClones() {
+    clearClones();
+    // 先頭に末尾から perView 枚、末尾に先頭から perView 枚
+    const children = Array.from(scroller.children);
+    const head = children.slice(-perView).map((el) => {
+      const c = el.cloneNode(true);
+      c.dataset.clone = "head";
+      return c;
+    });
+    const tail = children.slice(0, perView).map((el) => {
+      const c = el.cloneNode(true);
+      c.dataset.clone = "tail";
+      return c;
+    });
+    head.forEach((c) => scroller.insertBefore(c, scroller.firstChild));
+    tail.forEach((c) => scroller.appendChild(c));
+    // 実データ範囲の先頭へ即座にジャンプ
+    current = perView; // 先頭クローン群の直後＝実データ先頭
+    jumpToIndex(current);
+  }
+
+  function jumpToIndex(idx) {
+    // アニメなしで即座に移動（wrap後の補正用）
+    scroller.style.scrollBehavior = "auto";
+    scroller.scrollLeft = idx * pageSize;
+    // scrollBehavior を戻す
+    // 次回の scrollToIndex が smooth で動作するようタイミングをずらして戻す
+    requestAnimationFrame(() => {
+      scroller.style.scrollBehavior = "";
+    });
+  }
+
+  function scrollToIndex(idx) {
+    scroller.style.scrollBehavior = "smooth";
+    scroller.scrollLeft = idx * pageSize;
+  }
+
+  function getRealIndex() {
+    // クローンを除いた実データの現在位置（0..total-1）
+    let i = current - perView;
+    if (i < 0) i += total;
+    if (i >= total) i -= total;
+    return i;
+  }
+
+  function go(delta = 1) {
+    if (animating) return;
+    animating = true;
+    current += delta;
+    scrollToIndex(current);
+    // ラップ検出用にフラグクリア予約
+    setTimeout(() => (animating = false), 360);
+  }
+
+  function goPrev() {
+    // 左ボタン：1つ左へ（見た目は右→左に流れる）
+    stopAuto();
+    justJumped = false;
+    go(-1);
+    startAuto();
+  }
+
+  function goNext() {
+    // 右ボタン：1つ右へ（見た目は右→左に流れる設定にも合致）
+    stopAuto();
+    justJumped = false;
+    go(+1);
+    startAuto();
+  }
+
+  function goToReal(realIdx) {
+    stopAuto();
+    // realIdx を実データ領域の index に変換
+    current = perView + realIdx;
+    scrollToIndex(current);
+    startAuto();
+  }
+
+  // スクロール後のラップ補正
+  let wrapRaf = 0;
+  function onScrolled() {
+    cancelAnimationFrame(wrapRaf);
+    wrapRaf = requestAnimationFrame(() => {
+      const maxIndex = perView + total - 1; // 実データ末尾の index
+      if (current <= perView - 1) {
+        // 左端クローン域 → 実データ末尾へジャンプ
+        current += total;
+        jumpToIndex(current);
+        justJumped = true;
+      } else if (current >= perView + total) {
+        // 右端クローン域 → 実データ先頭へジャンプ
+        current -= total;
+        jumpToIndex(current);
+        justJumped = true;
+      } else {
+        justJumped = false;
+      }
+      // ドット更新
+      const ri = getRealIndex();
+      $$("#members-dots > button", root).forEach((b, i) => {
+        b.classList.toggle("is-active", i === ri);
+      });
+    });
+  }
+
+  // インデックスをスクロール位置から推定
+  let indexRaf = 0;
+  function trackIndexByScrollLeft() {
+    cancelAnimationFrame(indexRaf);
+    indexRaf = requestAnimationFrame(() => {
+      if (pageSize > 0) {
+        const near = Math.round(scroller.scrollLeft / pageSize);
+        if (near !== current) current = near;
+      }
+    });
+  }
+
+  // 自動再生
+  const AUTO_MS = 3500;
+  function startAuto() {
+    stopAuto();
+    timer = setInterval(() => {
+      // ラップ直後の “短時間でさらに進む” を抑止
+      if (justJumped) {
+        justJumped = false;
+        return;
+      }
+      go(+1);
+    }, AUTO_MS);
+  }
+  function stopAuto() {
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+    }
+  }
+
+  // 初期測定 → クローン適用 → ドット描画 → 自動再生
+  measure();
+  applyClones();
+  renderDots();
+  startAuto();
+
+  // イベント
+  scroller.addEventListener("scroll", () => {
+    trackIndexByScrollLeft();
+    onScrolled();
+  });
+  prevBtn?.addEventListener("click", goPrev);
+  nextBtn?.addEventListener("click", goNext);
+
+  // ホバーで一時停止（モバイルは hover 無し）
+  root.addEventListener("mouseenter", stopAuto);
+  root.addEventListener("mouseleave", startAuto);
+
+  // リサイズで re-measure & 再配置
+  let resizeTid = 0;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTid);
+    resizeTid = setTimeout(() => {
+      const riBefore = getRealIndex(); // 表示メンバーを維持
+      measure();
+      applyClones();
+      current = perView + riBefore;
+      jumpToIndex(current);
+      renderDots();
+    }, 120);
+  }, { passive: true });
+}
+
+async function renderMembers() {
+  const data = await loadJSON("data/members.json");
+  if (!data) return;
+  const items = Array.isArray(data) ? data : Array.isArray(data.members) ? data.members : [];
+  setupMembersCarousel(items);
+}
+
+/* ------------------------------
+ * NAV ドロワー（モバイル）
+ * ------------------------------ */
+function setupNav() {
+  const btn = $(".menu-toggle");
+  const nav = $("#global-nav");
+  const backdrop = $(".nav-backdrop");
+
+  const close = () => {
+    document.body.classList.remove("nav-open");
+    btn?.setAttribute("aria-expanded", "false");
   };
-  wrap.innerHTML = state.members.map(m=>{
-    const socials = m.social ? Object.entries(m.social)
-      .filter(([k,v])=> v && typeof v === "string" && v.trim().length)
-      .map(([k,v])=>`<a class="social-icon" href="${esc(v)}" target="_blank" rel="noopener" aria-label="${esc(k)}"><img src="${ICONS[k]||ICONS['Github']||''}" alt="${esc(k)}" loading="lazy"></a>`).join("") : "";
-    return `<article class="card" itemscope itemtype="https://schema.org/Person">
-      <img src="${esc(m.image||"assets/offshot.jpg")}" alt="${esc(m.name)}" loading="lazy">
-      <div class="card__body">
-        <h3 class="card__title" itemprop="name">${esc(m.name)}</h3>
-        <div class="card__meta"><span itemprop="jobTitle">${esc(m.role||"")}</span></div>
-        <div class="social-row">${socials}</div>
-      </div>
-    </article>`;
-  }).join("");
+  const open = () => {
+    document.body.classList.add("nav-open");
+    btn?.setAttribute("aria-expanded", "true");
+  };
+
+  btn?.addEventListener("click", () => {
+    const openNow = document.body.classList.contains("nav-open");
+    openNow ? close() : open();
+  });
+
+  backdrop?.addEventListener("click", close);
+  // フォーカス外れたら閉じるなどは必要に応じて
 }
 
-function injectJsonLd(){
-  const ld={"@context":"https://schema.org","@type":"MusicGroup","name":"U-culling",
-    "genre":["Alternative Rock","Hard Rock"],
-    "url": location.origin+location.pathname, "image": location.origin+"/assets/hero.jpg",
-    "member": state.members.map(m=>({"@type":"Person","name":m.name,"jobTitle":m.role,"sameAs":Object.values(m.social||{})}))};
-  const s=document.createElement("script"); s.type="application/ld+json"; s.textContent=JSON.stringify(ld);
-  document.head.appendChild(s);
+/* ------------------------------
+ * Footer 年号
+ * ------------------------------ */
+function setYear() {
+  const y = $("#y");
+  if (y) y.textContent = new Date().getFullYear();
 }
 
-async function main(){
-  [state.news, state.shows, state.songs, state.members] = await Promise.all([
-    fetch("data/news.json").then(r=>r.json()),
-    fetch("data/shows.json").then(r=>r.json()),
-    fetch("data/songs.json").then(r=>r.json()),
-    fetch("data/members.json").then(r=>r.json()),
+/* ------------------------------
+ * main
+ * ------------------------------ */
+async function main() {
+  setupNav();
+  setYear();
+
+  await Promise.all([
+    renderNews(),
+    renderShows(),
+    renderMembers(),
   ]);
-  renderNews(); renderShows(); renderSongs(); renderMembers(); injectJsonLd();
-  document.getElementById("y").textContent=new Date().getFullYear();
 }
-main().catch(e=>{ console.error(e); alert("データ読み込みに失敗しました。構成をご確認ください。"); });
+
+document.addEventListener("DOMContentLoaded", main);

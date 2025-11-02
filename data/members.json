@@ -4,8 +4,7 @@
     "role": "Vocal",
     "image": "assets/member_vocal.jpg",
     "social": {
-      "X": "https://x.com/sh1sh4mo33",
-      "VRChat": ""
+      "X": "https://x.com/sh1sh4mo33"
     }
   },
   {
@@ -13,7 +12,8 @@
     "role": "Lead Guitar",
     "image": "assets/member_guitarA.jpg",
     "social": {
-      "X": "https://x.com/cannot722"
+      "X": "https://x.com/cannot722",
+      "VRChat": "https://vrchat.com/home/user/usr_d5fb4fcd-55cf-43db-8d4f-749048670002"
     }
   },
   {
@@ -31,7 +31,8 @@
     "role": "Bass",
     "image": "assets/member_bass.jpg",
     "social": {
-      "X": "https://x.com/plateck0118"
+      "X": "https://x.com/plateck0118",
+      "VRChat": "https://vrchat.com/home/user/usr_42edaea6-b1fd-4337-a8e7-1b4ae0e56790"
     }
   },
   {
@@ -39,7 +40,8 @@
     "role": "Drums",
     "image": "assets/member_drums.jpg",
     "social": {
-      "X": "https://x.com/namayakiVRC"
+      "X": "https://x.com/namayakiVRC",
+      "VRChat": "https://vrchat.com/home/user/usr_fdc1e1f5-7692-4ddc-bc2b-4112fde1172b"
     }
   }
 ]

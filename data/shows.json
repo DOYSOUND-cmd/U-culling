@@ -1,18 +1,33 @@
 [
+    {
+    "title": "LiveSpace燈",
+    "date": "2025-10-07",
+    "time": "21:15",
+    "venue": "VRChat / LiveSpace 燈",
+    "url": "",
+    "note": "オープンマイクデー VOL.13"
+  },
+  {
+    "title": "LiveSpace燈",
+    "date": "2025-07-05",
+    "time": "21:45",
+    "venue": "VRChat / LiveSpace 燈",
+    "url": "",
+    "note": "The Ignition Vol.1"
+  },
   {
     "title": "I2BU",
-    "start": "2025-07-05T20:00:00+09:00",
-    "end": "2025-07-05T21:30:00+09:00",
-    "place": "VRChat / LiveSpace 燈",
-    "ticket": "",
-    "url": "",
-    "note": "複数バンド共演イベント。"
+    "date": "2025-06-29",
+    "time": "21:00",
+    "venue": "VRChat / LiveSpace 燈",
+    "note": "I2BU参加。"
   },
   {
     "title": "Encounter",
-    "start": "2025-04-06T19:00:00+09:00",
-    "end": "2025-04-06T20:30:00+09:00",
-    "place": "VRChat / LiveSpace 燈",
-    "note": "U-culling初ライブ。"
+    "date": "2025-04-06",
+    "time": "20:40",
+    "venue": "VRChat / AWAKE",
+    "url": "",
+    "note": "U-culling初ライブ"
   }
 ]
