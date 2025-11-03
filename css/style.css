@@ -382,3 +382,9 @@ a.btn, .btn, .nav a, .show .btn, .menu-toggle{ min-height:44px }
     font-size: var(--step-1) !important;
   }
 }
+/* Mobile: keep header, hide menu/toggle */
+@media (max-width: 767.98px){
+  .menu-toggle{ display: none !important; }    /* ハンバーガー非表示 */
+  #global-nav{ display: none !important; }     /* メニュー非表示 */
+  .nav-backdrop{ display: none !important; }
+}
